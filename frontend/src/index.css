@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* ── Base tokens (dark-first) ─────────────────────── */
+:root {
+  --color-bg-base:     #09090b;
+  --color-bg-surface:  #18181b;
+  --color-bg-elevated: #27272a;
+  --color-border:      rgba(63,63,70,0.5);
+
+  --color-text-primary:   #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted:     #52525b;
+
+  --color-accent:        #6366f1;
+  --color-accent-hover:  #818cf8;
+  --color-accent-pos:    #34d399;
+  --color-accent-warn:   #fbbf24;
+  --color-accent-danger: #f43f5e;
+}
+
+/* ── Light mode overrides ─────────────────────────── */
+html:not(.dark) {
+  --color-bg-base:     #fafafa;
+  --color-bg-surface:  #ffffff;
+  --color-bg-elevated: #f4f4f5;
+  --color-border:      #e4e4e7;
+
+  --color-text-primary:   #09090b;
+  --color-text-secondary: #71717a;
+  --color-text-muted:     #a1a1aa;
+}
+
+/* ── Global base ──────────────────────────────────── */
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
