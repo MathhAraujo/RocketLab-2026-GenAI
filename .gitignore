@@ -1,0 +1,26 @@
+# Claude Code
+.claude/
+
+# Documentos
+*.pdf
+
+# Dados e banco
+*.db
+*.sqlite3
+
+# Variáveis de ambiente
+.env
+.env.local
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build
+dist/
+build/
