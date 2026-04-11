@@ -37,21 +37,30 @@ def listar_produtos(
         query = query.filter(
             Produto.nome_produto.ilike(termo) | Produto.categoria_produto.ilike(termo)
         )
-        if categoria:
-            query = query.filter(Produto.categoria_produto == categoria)
+    if categoria:
+        query = query.filter(Produto.categoria_produto == categoria)
+
     total = query.count()
     items = query.order_by(Produto.nome_produto).offset(skip).limit(limit).all()
-            
+
     return {"total": total, "items": items}
+
+@router.get("/categorias", response_model=List[str], tags=["Produtos"])
+def listar_categorias(db: Session = Depends(get_db)):
+    rows = (
+        db.query(Produto.categoria_produto)
+        .distinct()
+        .order_by(Produto.categoria_produto)
+        .all()
+    )
+    return [r[0] for r in rows]
 
 @router.get("/{id_produto}", response_model=ProdutoDetalhes)
 def obter_produto(id_produto: str, db: Session = Depends(get_db)):
-    """Retorna um produto com resumo de vendas e avaliações."""
     produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-    # Resumo de vendas: soma de itens_pedidos para este produto
     vendas_row = (
         db.query(
             func.count(ItemPedido.id_item).label("total_vendas"),
@@ -61,7 +70,6 @@ def obter_produto(id_produto: str, db: Session = Depends(get_db)):
         .one()
     )
 
-    # Resumo de avaliações: via itens_pedidos → pedidos → avaliacoes_pedidos
     avaliacoes_row = (
         db.query(
             func.count(AvaliacaoPedido.id_avaliacao).label("total_avaliacoes"),
@@ -88,7 +96,6 @@ def obter_produto(id_produto: str, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=ProdutoResponse, status_code=201)
 def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db)):
-    """Cria um novo produto com ID gerado automaticamente."""
     novo = Produto(id_produto=uuid.uuid4().hex, **payload.model_dump())
     db.add(novo)
     db.commit()
@@ -100,7 +107,11 @@ def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db)):
 def atualizar_produto(
     id_produto: str, payload: ProdutoUpdate, db: Session = Depends(get_db)
 ):
-    """Atualiza campos de um produto existente (somente campos enviados são alterados)."""
+    campos = payload.model_dump(exclude_unset=True)
+    
+    if not campos:
+        raise HTTPException(status_code=422, detail="Nenhum campo para atualizar")
+    
     produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -113,7 +124,6 @@ def atualizar_produto(
 
 @router.delete("/{id_produto}", status_code=204)
 def deletar_produto(id_produto: str, db: Session = Depends(get_db)):
-    """Remove um produto pelo ID."""
     produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")

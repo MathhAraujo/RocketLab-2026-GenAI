@@ -11,16 +11,11 @@ class ProdutoBase(BaseModel):
     altura_centimetros: Optional[float] = None
     largura_centimetros: Optional[float] = None
 
-class PaginatedProdutos(BaseModel):
-    total: int
-    items: List[ProdutoResponse]
-
 class ProdutoCreate(ProdutoBase):
     pass
 
 
 class ProdutoUpdate(BaseModel):
-    """Todos os campos são opcionais para suportar atualizações parciais."""
     nome_produto: Optional[str] = None
     categoria_produto: Optional[str] = None
     peso_produto_gramas: Optional[float] = None
@@ -33,6 +28,10 @@ class ProdutoResponse(ProdutoBase):
     id_produto: str
 
     model_config = {"from_attributes": True}
+
+class PaginatedProdutos(BaseModel):
+    total: int
+    items: List[ProdutoResponse]
 
 
 class AvaliacaoResumo(BaseModel):
