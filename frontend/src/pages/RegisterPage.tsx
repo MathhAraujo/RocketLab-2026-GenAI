@@ -1,4 +1,4 @@
-import { ShoppingBag, Sun, Moon, ArrowLeft } from "lucide-react";
+import { ShoppingBag, Sun, Moon, ArrowLeft, Shield, Eye } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../api/auth";
@@ -12,6 +12,7 @@ export function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,8 +32,7 @@ export function RegisterPage() {
 
     setIsLoading(true);
     try {
-      await register({ username, password });
-      // Redirects back to login on success
+      await register({ username, password, is_admin: isAdmin });
       navigate("/login", { replace: true });
     } catch (err: unknown) {
       const msg =
@@ -56,7 +56,6 @@ export function RegisterPage() {
         backgroundSize: "32px 32px",
       }}
     >
-      {/* Glow central */}
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
         aria-hidden
@@ -67,7 +66,6 @@ export function RegisterPage() {
         />
       </div>
 
-      {/* Theme toggle */}
       <button
         onClick={toggleTheme}
         className="absolute top-4 right-4 rounded-lg p-2 transition-colors hover:bg-zinc-800/60 z-10"
@@ -77,7 +75,6 @@ export function RegisterPage() {
       </button>
 
       <div className="relative z-10 w-full max-w-sm">
-        {/* Brand */}
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="rounded-2xl bg-indigo-500/15 p-4">
             <ShoppingBag size={40} className="text-indigo-400" />
@@ -89,11 +86,10 @@ export function RegisterPage() {
             Mercadão
           </h1>
           <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-            Cadastro de Novo Visitante
+            Cadastro de nova conta
           </p>
         </div>
 
-        {/* Card */}
         <div
           className="rounded-2xl p-8 shadow-2xl relative"
           style={{
@@ -109,7 +105,7 @@ export function RegisterPage() {
           >
             <ArrowLeft size={18} />
           </button>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <Input
               id="username"
@@ -138,6 +134,42 @@ export function RegisterPage() {
               placeholder="••••••••"
               required
             />
+
+            {/* Tipo de acesso */}
+            <div className="pt-1">
+              <p className="text-xs font-medium mb-2" style={{ color: "var(--color-text-secondary)" }}>
+                Tipo de acesso
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAdmin(false)}
+                  className="flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-all"
+                  style={{
+                    borderColor: !isAdmin ? "#6366f1" : "var(--color-border)",
+                    background: !isAdmin ? "rgba(99,102,241,0.12)" : "var(--color-bg-elevated)",
+                    color: !isAdmin ? "#818cf8" : "var(--color-text-secondary)",
+                  }}
+                >
+                  <Eye size={18} />
+                  Visualizador
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAdmin(true)}
+                  className="flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-all"
+                  style={{
+                    borderColor: isAdmin ? "#f59e0b" : "var(--color-border)",
+                    background: isAdmin ? "rgba(245,158,11,0.12)" : "var(--color-bg-elevated)",
+                    color: isAdmin ? "#fbbf24" : "var(--color-text-secondary)",
+                  }}
+                >
+                  <Shield size={18} />
+                  Administrador
+                </button>
+              </div>
+            </div>
+
             {error && (
               <p
                 className="rounded-lg px-3 py-2 text-sm"

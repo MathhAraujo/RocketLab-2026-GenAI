@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import uuid
 
 from app.database import get_db
-from app.schemas.auth import LoginRequest, TokenResponse, UsuarioAutenticado
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UsuarioAutenticado
 from app.models.usuario import Usuario
 from app.security import verify_password, get_password_hash, create_access_token
 from app.dependencies import get_current_user
@@ -54,7 +54,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         422: {"description": "Corpo da requisição inválido."},
     },
 )
-def register(payload: LoginRequest, db: Session = Depends(get_db)):
+def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     if len(payload.password) < 4:
         raise HTTPException(status_code=400, detail="A senha deve conter pelo menos 4 caracteres.")
     user = db.query(Usuario).filter(Usuario.username == payload.username).first()
@@ -64,7 +64,7 @@ def register(payload: LoginRequest, db: Session = Depends(get_db)):
         id_usuario=uuid.uuid4().hex,
         username=payload.username,
         hashed_password=get_password_hash(payload.password),
-        is_admin=False,
+        is_admin=payload.is_admin,
     )
     db.add(novo)
     db.commit()

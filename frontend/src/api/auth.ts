@@ -1,4 +1,4 @@
-import type { AuthUser, LoginRequest, TokenResponse } from "../types/auth";
+import type { AuthUser, LoginRequest, RegisterRequest, TokenResponse } from "../types/auth";
 import api from "./client";
 
 export async function login(data: LoginRequest): Promise<TokenResponse> {
@@ -6,7 +6,7 @@ export async function login(data: LoginRequest): Promise<TokenResponse> {
   return response.data;
 }
 
-export async function register(data: LoginRequest): Promise<AuthUser> {
+export async function register(data: RegisterRequest): Promise<AuthUser> {
   const response = await api.post<AuthUser>("/auth/register", data);
   return response.data;
 }

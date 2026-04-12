@@ -6,6 +6,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    is_admin: bool = False
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
