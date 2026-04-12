@@ -3,13 +3,15 @@ from datetime import datetime
 
 import pytest
 from fastapi.testclient import TestClient
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models
 from app.database import Base, get_db
-from app.main import app
+from app.main import app, custom_key_builder
 from app.models.avaliacao_pedido import AvaliacaoPedido
 from app.models.consumidor import Consumidor
 from app.models.item_pedido import ItemPedido
@@ -17,6 +19,12 @@ from app.models.pedido import Pedido
 from app.models.vendedor import Vendedor
 from app.models.usuario import Usuario
 from app.security import get_password_hash, create_access_token
+
+
+@pytest.fixture(autouse=True)
+def reset_cache():
+    FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache", key_builder=custom_key_builder)
+    yield
 
 
 @pytest.fixture

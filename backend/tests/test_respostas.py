@@ -92,3 +92,47 @@ def test_deletar_resposta_avaliacao_sucesso(client, admin_headers, db):
     assert body["resposta_admin"] is None
     assert body["autor_resposta"] is None
     assert body["data_resposta"] is None
+
+
+# --- Testes de invalidação de cache ---
+
+def test_cache_invalida_apos_responder_avaliacao(client, admin_headers, db):
+    id_produto = criar_produto(client, admin_headers).json()["id_produto"]
+    id_consumidor = criar_consumidor(db)
+    id_vendedor = criar_vendedor(db)
+    id_pedido = criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor)
+    id_avaliacao = criar_avaliacao(db, id_pedido, nota=5, titulo="Ótimo", comentario="Excelente")
+
+    r1 = client.get(f"/api/produtos/{id_produto}/avaliacoes", headers=admin_headers)
+    assert r1.json()["avaliacoes"][0]["resposta_admin"] is None
+
+    client.post(
+        f"/api/produtos/avaliacoes/{id_avaliacao}/resposta",
+        json={"resposta": "Obrigado!"},
+        headers=admin_headers,
+    )
+
+    r2 = client.get(f"/api/produtos/{id_produto}/avaliacoes", headers=admin_headers)
+    assert r2.json()["avaliacoes"][0]["resposta_admin"] == "Obrigado!"
+
+
+def test_cache_invalida_apos_deletar_resposta(client, admin_headers, db):
+    id_produto = criar_produto(client, admin_headers).json()["id_produto"]
+    id_consumidor = criar_consumidor(db)
+    id_vendedor = criar_vendedor(db)
+    id_pedido = criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor)
+    id_avaliacao = criar_avaliacao(db, id_pedido, nota=4)
+
+    client.post(
+        f"/api/produtos/avaliacoes/{id_avaliacao}/resposta",
+        json={"resposta": "Resposta inicial"},
+        headers=admin_headers,
+    )
+
+    r1 = client.get(f"/api/produtos/{id_produto}/avaliacoes", headers=admin_headers)
+    assert r1.json()["avaliacoes"][0]["resposta_admin"] == "Resposta inicial"
+
+    client.delete(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", headers=admin_headers)
+
+    r2 = client.get(f"/api/produtos/{id_produto}/avaliacoes", headers=admin_headers)
+    assert r2.json()["avaliacoes"][0]["resposta_admin"] is None

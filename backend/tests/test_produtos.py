@@ -259,3 +259,39 @@ def test_avaliacoes_paginacao(client, admin_headers, db):
 def test_avaliacoes_produto_inexistente(client, admin_headers):
     r = client.get("/api/produtos/id-inexistente/avaliacoes", headers=admin_headers)
     assert r.status_code == 404
+
+
+# --- Testes de invalidação de cache ---
+
+def test_cache_invalida_apos_criar_produto(client, admin_headers):
+    r1 = client.get("/api/produtos/", headers=admin_headers)
+    assert r1.json()["total"] == 0
+
+    criar(client, admin_headers)
+
+    r2 = client.get("/api/produtos/", headers=admin_headers)
+    assert r2.json()["total"] == 1
+
+
+def test_cache_invalida_apos_atualizar_produto(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+
+    r1 = client.get(f"/api/produtos/{id_}", headers=admin_headers)
+    assert r1.json()["nome_produto"] == PRODUTO_BASE["nome_produto"]
+
+    client.put(f"/api/produtos/{id_}", json={"nome_produto": "Atualizado"}, headers=admin_headers)
+
+    r2 = client.get(f"/api/produtos/{id_}", headers=admin_headers)
+    assert r2.json()["nome_produto"] == "Atualizado"
+
+
+def test_cache_invalida_apos_deletar_produto(client, admin_headers):
+    id_ = criar(client, admin_headers).json()["id_produto"]
+
+    r1 = client.get("/api/produtos/", headers=admin_headers)
+    assert r1.json()["total"] == 1
+
+    client.delete(f"/api/produtos/{id_}", headers=admin_headers)
+
+    r2 = client.get("/api/produtos/", headers=admin_headers)
+    assert r2.json()["total"] == 0

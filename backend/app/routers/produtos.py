@@ -3,6 +3,8 @@ from math import ceil
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi_cache import FastAPICache
+from fastapi_cache.decorator import cache
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -51,6 +53,7 @@ _ORDENACAO = {
     summary="Listar Produtos",
     description="Lista paginada de produtos com opções de busca, filtro por categoria e cálculo de totais de venda e avaliação média.",
 )
+@cache(expire=60)
 def listar_produtos(
     busca: Optional[str] = Query(None, alias="search"),
     categoria: Optional[str] = Query(None),
@@ -94,6 +97,7 @@ def listar_produtos(
     summary="Listar Categorias",
     description="Retorna todas as categorias únicas de produtos registradas.",
 )
+@cache(expire=60)
 def listar_categorias(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     rows = (
         db.query(Produto.categoria_produto)
@@ -110,6 +114,7 @@ def listar_categorias(db: Session = Depends(get_db), current_user=Depends(get_cu
     summary="Obter Produto",
     description="Retorna detalhes completos de um produto específico com base no seu ID.",
 )
+@cache(expire=60)
 def obter_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     produto = _buscar_produto(id_produto, db)
     if not produto:
@@ -124,10 +129,11 @@ def obter_produto(id_produto: str, db: Session = Depends(get_db), current_user=D
     summary="Criar Produto",
     description="Registra um novo produto.",
 )
-def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db), current_user=Depends(require_admin)):
+async def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db), current_user=Depends(require_admin)):
     novo = Produto(id_produto=uuid.uuid4().hex, **payload.model_dump())
     db.add(novo)
     db.commit()
+    await FastAPICache.get_backend().clear()
     return _buscar_produto(novo.id_produto, db)
 
 
@@ -137,7 +143,7 @@ def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db), current
     summary="Atualizar Produto",
     description="Altera as propriedades de um produto existente com base em seu ID.",
 )
-def atualizar_produto(
+async def atualizar_produto(
     id_produto: str, payload: ProdutoUpdate, db: Session = Depends(get_db), current_user=Depends(require_admin)
 ):
     campos = payload.model_dump(exclude_unset=True)
@@ -151,6 +157,7 @@ def atualizar_produto(
     for campo, valor in campos.items():
         setattr(produto, campo, valor)
     db.commit()
+    await FastAPICache.get_backend().clear()
     return _buscar_produto(id_produto, db)
 
 
@@ -160,12 +167,13 @@ def atualizar_produto(
     summary="Deletar Produto",
     description="Deleta um produto de forma definitiva.",
 )
-def deletar_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(require_admin)):
+async def deletar_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(require_admin)):
     produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     db.delete(produto)
     db.commit()
+    await FastAPICache.get_backend().clear()
 
 
 @router.get(
@@ -174,6 +182,7 @@ def deletar_produto(id_produto: str, db: Session = Depends(get_db), current_user
     summary="Obter Vendas do Produto",
     description="Calcula e retorna estatísticas consolidadas de venda de um produto.",
 )
+@cache(expire=60)
 def obter_vendas_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if not db.query(Produto).filter(Produto.id_produto == id_produto).first():
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -216,6 +225,7 @@ def obter_vendas_produto(id_produto: str, db: Session = Depends(get_db), current
     summary="Listar Avaliações do Produto",
     description="Recupera de maneira paginada as avaliações de consumidores atreladas a este produto.",
 )
+@cache(expire=60)
 def listar_avaliacoes_produto(
     id_produto: str,
     pagina: int = Query(1, alias="page", ge=1),
@@ -303,7 +313,7 @@ def listar_avaliacoes_produto(
         403: {"description": "Privilégios insuficientes para realizar esta ação."},
     },
 )
-def responder_avaliacao(
+async def responder_avaliacao(
     id_avaliacao: str,
     payload: RespostaRequest,
     db: Session = Depends(get_db),
@@ -318,6 +328,7 @@ def responder_avaliacao(
     av.data_resposta = datetime.utcnow()
     db.commit()
     db.refresh(av)
+    await FastAPICache.get_backend().clear()
     return ItemAvaliacao(
         id_avaliacao=av.id_avaliacao,
         avaliacao=av.avaliacao,
@@ -340,7 +351,7 @@ def responder_avaliacao(
         403: {"description": "Privilégios insuficientes para realizar esta ação."},
     },
 )
-def deletar_resposta_avaliacao(
+async def deletar_resposta_avaliacao(
     id_avaliacao: str,
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
@@ -353,6 +364,7 @@ def deletar_resposta_avaliacao(
     av.data_resposta = None
     db.commit()
     db.refresh(av)
+    await FastAPICache.get_backend().clear()
     return ItemAvaliacao(
         id_avaliacao=av.id_avaliacao,
         avaliacao=av.avaliacao,
