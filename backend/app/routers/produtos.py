@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from math import ceil
 from typing import List, Optional
 
@@ -319,7 +320,6 @@ async def responder_avaliacao(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    from datetime import datetime
     av = db.query(AvaliacaoPedido).filter(AvaliacaoPedido.id_avaliacao == id_avaliacao).first()
     if not av:
         raise HTTPException(status_code=404, detail="Avaliação não encontrada")

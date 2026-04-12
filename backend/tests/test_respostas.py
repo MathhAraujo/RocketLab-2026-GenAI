@@ -1,5 +1,7 @@
 import uuid
 
+from app.models.usuario import Usuario
+from app.security import create_access_token, get_password_hash
 from tests.conftest import (
     criar_avaliacao,
     criar_consumidor,
@@ -56,10 +58,6 @@ def test_responder_avaliacao_proibido_para_nao_admin(client, db, admin_headers):
     id_vendedor = criar_vendedor(db)
     id_pedido = criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor)
     id_avaliacao = criar_avaliacao(db, id_pedido, nota=4)
-
-    # criar usuário não-admin diretamente no DB e gerar token
-    from app.models.usuario import Usuario
-    from app.security import create_access_token, get_password_hash
 
     username = f"user_{uuid.uuid4().hex[:8]}"
     user = Usuario(id_usuario=uuid.uuid4().hex, username=username, hashed_password=get_password_hash("1234"), is_admin=False)

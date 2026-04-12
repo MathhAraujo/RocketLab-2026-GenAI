@@ -1,7 +1,7 @@
 import { CATEGORIA_LABELS } from "./constants";
 
 export function formatCategoria(slug: string | null | undefined): string {
-  if (!slug) return "—";
+  if (!slug) return "Sem Categoria";
   return CATEGORIA_LABELS[slug] ?? slug.replace(/_/g, " ");
 }
 

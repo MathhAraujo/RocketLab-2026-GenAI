@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Optional
 
 import pytest
 from fastapi.testclient import TestClient
@@ -160,8 +161,8 @@ def criar_avaliacao(
     db,
     id_pedido: str,
     nota: int,
-    titulo: str = None,
-    comentario: str = None,
+    titulo: Optional[str] = None,
+    comentario: Optional[str] = None,
 ) -> str:
     id_avaliacao = uuid.uuid4().hex
     db.add(AvaliacaoPedido(

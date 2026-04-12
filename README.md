@@ -7,7 +7,7 @@ Aplicacao fullstack desenvolvida para o Rocket Lab 2026. O sistema permite que g
 | Camada | Tecnologia |
 |---|---|
 | Frontend | Vite + React + TypeScript + Tailwind CSS |
-| Backend | FastAPI (Python 3.12) |
+| Backend | FastAPI (Python 3.11+) |
 | Banco de dados | SQLite via SQLAlchemy 2.0 |
 | Migrations | Alembic |
 | Autenticacao | JWT (Bearer token, 7 dias) |
@@ -103,7 +103,7 @@ docker compose down
 
 ### Pre-requisitos
 
-- Python 3.12+
+- Python 3.11+
 - Node.js 20+
 
 ### Backend
@@ -151,10 +151,7 @@ npm run dev
 
 O frontend estara disponivel em `http://localhost:5173`.
 
-> A variavel de ambiente `VITE_API_URL` define o endereco da API. O valor padrao aponta para `http://localhost:8000/api`. Para alterar, crie um arquivo `.env` em `frontend/` com o conteudo:
-> ```
-> VITE_API_URL=http://localhost:8000/api
-> ```
+> A variavel de ambiente `VITE_API_URL` define o endereco base da API. O valor padrao e `http://localhost:8000/api` e funciona para uso local. So e necessario alterar se o backend estiver rodando em um host ou porta diferente.
 
 ## Primeiro acesso
 
