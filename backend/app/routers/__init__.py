@@ -1,3 +1,3 @@
-from app.routers import produtos
+from app.routers import auth, produtos
 
-__all__ = ["produtos"]
+__all__ = ["auth", "produtos"]

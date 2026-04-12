@@ -1,8 +1,7 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import produtos
+from app.routers import auth, produtos
 
 app = FastAPI(
     title="Sistema de Compras Online",
@@ -18,21 +17,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Erro interno no servidor"},
-    )
-
-app.include_router(produtos.router)
+app.include_router(auth.router, prefix="/api")
+app.include_router(produtos.router, prefix="/api")
 
 
 @app.get("/", tags=["Health"])
-def health_check():
+def health():
     return {"status": "ok", "message": "API rodando com sucesso!"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
