@@ -18,7 +18,7 @@ from app.models.vendedor import Vendedor  # noqa: E402
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
-BATCH_SIZE = 5_000
+BATCH_SIZE = 2_000
 
 
 # ---------------------------------------------------------------------------
