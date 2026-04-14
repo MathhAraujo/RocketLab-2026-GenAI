@@ -52,12 +52,28 @@ def _date(val: str) -> date | None:
     return dt.date() if dt else None
 
 
-def _bulk_insert(db, model, rows: list[dict]) -> None:
-    for i in range(0, len(rows), BATCH_SIZE):
-        batch = rows[i : i + BATCH_SIZE]
-        stmt = sqlite_insert(model).values(batch).on_conflict_do_nothing()
-        db.execute(stmt)
-    db.commit()
+def _stream_insert(db, model, path: str, row_fn) -> int:
+    """Lê o CSV em streaming e insere em batches, sem carregar tudo na memória."""
+    seen: set = set()
+    batch = []
+    total = 0
+    with open(path, encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            row, key = row_fn(r)
+            if key in seen:
+                continue
+            seen.add(key)
+            batch.append(row)
+            if len(batch) >= BATCH_SIZE:
+                db.execute(sqlite_insert(model).values(batch).on_conflict_do_nothing())
+                db.commit()
+                total += len(batch)
+                batch = []
+    if batch:
+        db.execute(sqlite_insert(model).values(batch).on_conflict_do_nothing())
+        db.commit()
+        total += len(batch)
+    return total
 
 
 # ---------------------------------------------------------------------------
@@ -68,143 +84,118 @@ def _seed_consumidores(db) -> None:
     if db.query(Consumidor).count() > 0:
         print("  consumidores: já populado, pulando.")
         return
-    seen: set[str] = set()
-    rows = []
-    with open(os.path.join(DATA_DIR, "dim_consumidores.csv"), encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            if r["id_consumidor"] in seen:
-                continue
-            seen.add(r["id_consumidor"])
-            rows.append({
-                "id_consumidor": r["id_consumidor"],
-                "prefixo_cep": r["prefixo_cep"],
-                "nome_consumidor": r["nome_consumidor"],
-                "cidade": r["cidade"],
-                "estado": r["estado"],
-            })
-    _bulk_insert(db, Consumidor, rows)
-    print(f"  consumidores: {len(rows)} registros inseridos.")
+
+    def row_fn(r):
+        return {
+            "id_consumidor": r["id_consumidor"],
+            "prefixo_cep": r["prefixo_cep"],
+            "nome_consumidor": r["nome_consumidor"],
+            "cidade": r["cidade"],
+            "estado": r["estado"],
+        }, r["id_consumidor"]
+
+    n = _stream_insert(db, Consumidor, os.path.join(DATA_DIR, "dim_consumidores.csv"), row_fn)
+    print(f"  consumidores: {n} registros inseridos.")
 
 
 def _seed_vendedores(db) -> None:
     if db.query(Vendedor).count() > 0:
         print("  vendedores: já populado, pulando.")
         return
-    seen: set[str] = set()
-    rows = []
-    with open(os.path.join(DATA_DIR, "dim_vendedores.csv"), encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            if r["id_vendedor"] in seen:
-                continue
-            seen.add(r["id_vendedor"])
-            rows.append({
-                "id_vendedor": r["id_vendedor"],
-                "nome_vendedor": r["nome_vendedor"],
-                "prefixo_cep": r["prefixo_cep"],
-                "cidade": r["cidade"],
-                "estado": r["estado"],
-            })
-    _bulk_insert(db, Vendedor, rows)
-    print(f"  vendedores: {len(rows)} registros inseridos.")
+
+    def row_fn(r):
+        return {
+            "id_vendedor": r["id_vendedor"],
+            "nome_vendedor": r["nome_vendedor"],
+            "prefixo_cep": r["prefixo_cep"],
+            "cidade": r["cidade"],
+            "estado": r["estado"],
+        }, r["id_vendedor"]
+
+    n = _stream_insert(db, Vendedor, os.path.join(DATA_DIR, "dim_vendedores.csv"), row_fn)
+    print(f"  vendedores: {n} registros inseridos.")
 
 
 def _seed_produtos(db) -> None:
     if db.query(Produto).count() > 0:
         print("  produtos: já populado, pulando.")
         return
-    seen: set[str] = set()
-    rows = []
-    with open(os.path.join(DATA_DIR, "dim_produtos.csv"), encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            if r["id_produto"] in seen:
-                continue
-            seen.add(r["id_produto"])
-            rows.append({
-                "id_produto": r["id_produto"],
-                "nome_produto": r["nome_produto"],
-                "categoria_produto": r["categoria_produto"],
-                "peso_produto_gramas": _float(r["peso_produto_gramas"]),
-                "comprimento_centimetros": _float(r["comprimento_centimetros"]),
-                "altura_centimetros": _float(r["altura_centimetros"]),
-                "largura_centimetros": _float(r["largura_centimetros"]),
-            })
-    _bulk_insert(db, Produto, rows)
-    print(f"  produtos: {len(rows)} registros inseridos.")
+
+    def row_fn(r):
+        return {
+            "id_produto": r["id_produto"],
+            "nome_produto": r["nome_produto"],
+            "categoria_produto": r["categoria_produto"],
+            "peso_produto_gramas": _float(r["peso_produto_gramas"]),
+            "comprimento_centimetros": _float(r["comprimento_centimetros"]),
+            "altura_centimetros": _float(r["altura_centimetros"]),
+            "largura_centimetros": _float(r["largura_centimetros"]),
+        }, r["id_produto"]
+
+    n = _stream_insert(db, Produto, os.path.join(DATA_DIR, "dim_produtos.csv"), row_fn)
+    print(f"  produtos: {n} registros inseridos.")
 
 
 def _seed_pedidos(db) -> None:
     if db.query(Pedido).count() > 0:
         print("  pedidos: já populado, pulando.")
         return
-    seen: set[str] = set()
-    rows = []
-    with open(os.path.join(DATA_DIR, "fat_pedidos.csv"), encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            if r["id_pedido"] in seen:
-                continue
-            seen.add(r["id_pedido"])
-            rows.append({
-                "id_pedido": r["id_pedido"],
-                "id_consumidor": r["id_consumidor"],
-                "status": r["status"],
-                "pedido_compra_timestamp": _datetime(r["pedido_compra_timestamp"]),
-                "pedido_entregue_timestamp": _datetime(r["pedido_entregue_timestamp"]),
-                "data_estimada_entrega": _date(r["data_estimada_entrega"]),
-                "tempo_entrega_dias": _float(r["tempo_entrega_dias"]),
-                "tempo_entrega_estimado_dias": _float(r["tempo_entrega_estimado_dias"]),
-                "diferenca_entrega_dias": _float(r["diferenca_entrega_dias"]),
-                "entrega_no_prazo": _str_or_none(r["entrega_no_prazo"]),
-            })
-    _bulk_insert(db, Pedido, rows)
-    print(f"  pedidos: {len(rows)} registros inseridos.")
+
+    def row_fn(r):
+        return {
+            "id_pedido": r["id_pedido"],
+            "id_consumidor": r["id_consumidor"],
+            "status": r["status"],
+            "pedido_compra_timestamp": _datetime(r["pedido_compra_timestamp"]),
+            "pedido_entregue_timestamp": _datetime(r["pedido_entregue_timestamp"]),
+            "data_estimada_entrega": _date(r["data_estimada_entrega"]),
+            "tempo_entrega_dias": _float(r["tempo_entrega_dias"]),
+            "tempo_entrega_estimado_dias": _float(r["tempo_entrega_estimado_dias"]),
+            "diferenca_entrega_dias": _float(r["diferenca_entrega_dias"]),
+            "entrega_no_prazo": _str_or_none(r["entrega_no_prazo"]),
+        }, r["id_pedido"]
+
+    n = _stream_insert(db, Pedido, os.path.join(DATA_DIR, "fat_pedidos.csv"), row_fn)
+    print(f"  pedidos: {n} registros inseridos.")
 
 
 def _seed_itens_pedidos(db) -> None:
     if db.query(ItemPedido).count() > 0:
         print("  itens_pedidos: já populado, pulando.")
         return
-    seen: set[tuple] = set()
-    rows = []
-    with open(os.path.join(DATA_DIR, "fat_itens_pedidos.csv"), encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            key = (r["id_pedido"], r["id_item"])
-            if key in seen:
-                continue
-            seen.add(key)
-            rows.append({
-                "id_pedido": r["id_pedido"],
-                "id_item": int(r["id_item"]),
-                "id_produto": r["id_produto"],
-                "id_vendedor": r["id_vendedor"],
-                "preco_BRL": float(r["preco_BRL"]),
-                "preco_frete": float(r["preco_frete"]),
-            })
-    _bulk_insert(db, ItemPedido, rows)
-    print(f"  itens_pedidos: {len(rows)} registros inseridos.")
+
+    def row_fn(r):
+        return {
+            "id_pedido": r["id_pedido"],
+            "id_item": int(r["id_item"]),
+            "id_produto": r["id_produto"],
+            "id_vendedor": r["id_vendedor"],
+            "preco_BRL": float(r["preco_BRL"]),
+            "preco_frete": float(r["preco_frete"]),
+        }, (r["id_pedido"], r["id_item"])
+
+    n = _stream_insert(db, ItemPedido, os.path.join(DATA_DIR, "fat_itens_pedidos.csv"), row_fn)
+    print(f"  itens_pedidos: {n} registros inseridos.")
 
 
 def _seed_avaliacoes(db) -> None:
     if db.query(AvaliacaoPedido).count() > 0:
         print("  avaliacoes_pedidos: já populado, pulando.")
         return
-    seen: set[str] = set()
-    rows = []
-    with open(os.path.join(DATA_DIR, "fat_avaliacoes_pedidos.csv"), encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            if r["id_avaliacao"] in seen:
-                continue
-            seen.add(r["id_avaliacao"])
-            rows.append({
-                "id_avaliacao": r["id_avaliacao"],
-                "id_pedido": r["id_pedido"],
-                "avaliacao": int(r["avaliacao"]),
-                "titulo_comentario": _str_or_none(r["titulo_comentario"]),
-                "comentario": _str_or_none(r["comentario"]),
-                "data_comentario": _datetime(r["data_comentario"]),
-                "data_resposta": _datetime(r["data_resposta"]),
-            })
-    _bulk_insert(db, AvaliacaoPedido, rows)
-    print(f"  avaliacoes_pedidos: {len(rows)} registros inseridos.")
+
+    def row_fn(r):
+        return {
+            "id_avaliacao": r["id_avaliacao"],
+            "id_pedido": r["id_pedido"],
+            "avaliacao": int(r["avaliacao"]),
+            "titulo_comentario": _str_or_none(r["titulo_comentario"]),
+            "comentario": _str_or_none(r["comentario"]),
+            "data_comentario": _datetime(r["data_comentario"]),
+            "data_resposta": _datetime(r["data_resposta"]),
+        }, r["id_avaliacao"]
+
+    n = _stream_insert(db, AvaliacaoPedido, os.path.join(DATA_DIR, "fat_avaliacoes_pedidos.csv"), row_fn)
+    print(f"  avaliacoes_pedidos: {n} registros inseridos.")
 
 
 # ---------------------------------------------------------------------------

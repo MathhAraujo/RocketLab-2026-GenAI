@@ -21,15 +21,18 @@ def upgrade() -> None:
     op.execute("""
         UPDATE produtos
         SET
-            total_avaliacoes = COALESCE(sub.total_avaliacoes, 0),
-            avaliacao_media = sub.avaliacao_media
-        FROM (
-            SELECT ip.id_produto, COUNT(ap.id_avaliacao) as total_avaliacoes, AVG(ap.avaliacao) as avaliacao_media
-            FROM avaliacoes_pedidos ap
-            JOIN (SELECT DISTINCT id_pedido, id_produto FROM itens_pedidos) ip ON ip.id_pedido = ap.id_pedido
-            GROUP BY ip.id_produto
-        ) as sub
-        WHERE produtos.id_produto = sub.id_produto
+            total_avaliacoes = COALESCE((
+                SELECT COUNT(ap.id_avaliacao)
+                FROM avaliacoes_pedidos ap
+                JOIN (SELECT DISTINCT id_pedido, id_produto FROM itens_pedidos) ip ON ip.id_pedido = ap.id_pedido
+                WHERE ip.id_produto = produtos.id_produto
+            ), 0),
+            avaliacao_media = (
+                SELECT AVG(ap.avaliacao)
+                FROM avaliacoes_pedidos ap
+                JOIN (SELECT DISTINCT id_pedido, id_produto FROM itens_pedidos) ip ON ip.id_pedido = ap.id_pedido
+                WHERE ip.id_produto = produtos.id_produto
+            )
     """)
 
 def downgrade() -> None:
