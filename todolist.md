@@ -668,10 +668,10 @@ Referência: PRD §8.1, §14.3, §18 Fase 4.
 
 Arquivos: componentes em `frontend/src/components/assistente/` conforme necessário.
 
-- [ ] Alternar tema e revisar cada componente (Prompt, Sidebar, Toggle, Result, Table, Chart, SQLViewer,
+- [x] Alternar tema e revisar cada componente (Prompt, Sidebar, Toggle, Result, Table, Chart, SQLViewer,
       SampleQuestions, ErrorMessage).
-- [ ] Ajustar cores do Recharts via props/tokens Tailwind (ex.: `stroke`, `fill` derivados de CSS vars).
-- [ ] Garantir contraste WCAG AA em ambos os temas.
+- [x] Ajustar cores do Recharts via props/tokens Tailwind (ex.: `stroke`, `fill` derivados de CSS vars).
+- [x] Garantir contraste WCAG AA em ambos os temas.
 
 Pronto quando: toggle de tema funciona.
 
@@ -681,9 +681,9 @@ Referência: PRD §9.2, §2.5.3 "Styling", §18 Fase 5.
 
 Arquivos: componentes afetados (layout, tabela, sidebar).
 
-- [ ] Testar em DevTools nas larguras 360px, 420px, 768px.
-- [ ] Sidebar colapsa via hamburger; tabelas têm scroll horizontal; `ResponsiveContainer` em todos os gráficos.
-- [ ] Nenhum overflow horizontal na página.
+- [x] Testar em DevTools nas larguras 360px, 420px, 768px.
+- [x] Sidebar colapsa via hamburger; tabelas têm scroll horizontal; `ResponsiveContainer` em todos os gráficos.
+- [x] Nenhum overflow horizontal na página.
 
 Pronto quando: DevTools mobile ok.
 
@@ -693,9 +693,9 @@ Referência: PRD §8.1, §9.2, §18 Fase 5.
 
 Arquivos: `docker-compose.yml`.
 
-- [ ] Adicionar `GOOGLE_API_KEY: ${GOOGLE_API_KEY}` no `environment:` do serviço backend.
-- [ ] Validar `docker compose up --build` com `.env` preenchido.
-- [ ] Validar comportamento 503 quando `GOOGLE_API_KEY` está vazia.
+- [x] Adicionar `GOOGLE_API_KEY: ${GOOGLE_API_KEY}` no `environment:` do serviço backend.
+- [x] Validar `docker compose up --build` com `.env` preenchido.
+- [x] Validar comportamento 503 quando `GOOGLE_API_KEY` está vazia.
 
 Pronto quando: container sobe com a var.
 
@@ -705,12 +705,12 @@ Referência: PRD §2.3, §14.3, §18 Fase 5.
 
 Arquivos: `README.md`.
 
-- [ ] Adicionar seção "Assistente de Análise" descrevendo a feature e a rota `/assistente`.
-- [ ] Documentar instrução de configuração de `GOOGLE_API_KEY` (obter chave, colocar em `.env`).
-- [ ] Listar comandos de tooling: `ruff format .`, `ruff check .`, `mypy app/`, `pytest`, `pytest --cov=app`,
+- [x] Adicionar seção "Assistente de Análise" descrevendo a feature e a rota `/assistente`.
+- [x] Documentar instrução de configuração de `GOOGLE_API_KEY` (obter chave, colocar em `.env`).
+- [x] Listar comandos de tooling: `ruff format .`, `ruff check .`, `mypy app/`, `pytest`, `pytest --cov=app`,
       `npm run lint`, `npm run type-check`, `npm run format:check`.
-- [ ] Listar as 10 perguntas-exemplo do PDF.
-- [ ] Incluir nota explicativa sobre guardrails (SELECT-only, bloqueio de `usuarios`, `LIMIT 1000`) e
+- [x] Listar as 10 perguntas-exemplo do PDF.
+- [x] Incluir nota explicativa sobre guardrails (SELECT-only, bloqueio de `usuarios`, `LIMIT 1000`) e
       anonimização (toggle 🔒, SHA-1 truncado).
 
 Pronto quando: README reflete a feature e o ferramental.
@@ -721,10 +721,10 @@ Referência: PRD §14.3, §18 Fase 5.
 
 Arquivos: nenhum (execução).
 
-- [ ] Rodar backend e frontend com `GOOGLE_API_KEY` válida.
-- [ ] Executar as 10 perguntas de exemplo; registrar sucesso/falha por item.
-- [ ] Validar que ≥ 9 retornam SQL semanticamente correto e renderização adequada.
-- [ ] Anotar falhas com reprodução e SQL gerado para eventuais ajustes de prompt.
+- [x] Rodar backend e frontend com `GOOGLE_API_KEY` válida.
+- [x] Executar as 10 perguntas de exemplo; registrar sucesso/falha por item.
+- [x] Validar que ≥ 9 retornam SQL semanticamente correto e renderização adequada.
+- [x] Anotar falhas com reprodução e SQL gerado para eventuais ajustes de prompt.
 
 Pronto quando: ≥ 9 de 10 ok.
 
@@ -734,9 +734,9 @@ Referência: PRD §9.2, §16.1, §18 Fase 5.
 
 Arquivos: nenhum (execução; verificar instruções do `README.md`).
 
-- [ ] Subir backend manualmente (`uvicorn app.main:app --reload`) conforme instruções do README.
-- [ ] Subir frontend manualmente (`npm run dev`).
-- [ ] Fazer login como admin e repetir 2–3 perguntas-exemplo garantindo paridade com modo Docker.
+- [x] Subir backend manualmente (`uvicorn app.main:app --reload`) conforme instruções do README.
+- [x] Subir frontend manualmente (`npm run dev`).
+- [x] Fazer login como admin e repetir 2–3 perguntas-exemplo garantindo paridade com modo Docker.
 
 Pronto quando: backend e frontend sobem manualmente e a feature funciona.
 
@@ -744,8 +744,8 @@ Referência: PRD §9.2, §18 Fase 5.
 
 ### 🚦 Gate Final
 
-- [ ] TODOS os gates de §16 verdes.
-- [ ] Revisão de aderência a §2.5 em todo o código novo (nomes, docstrings, constantes, camadas, tamanhos).
+- [x] TODOS os gates de §16 verdes.
+- [x] Revisão de aderência a §2.5 em todo o código novo (nomes, docstrings, constantes, camadas, tamanhos).
 
 ---
 
@@ -753,43 +753,43 @@ Referência: PRD §9.2, §18 Fase 5.
 
 ### 16.1 Funcionais
 
-- [ ] Rota `/assistente` acessível para admin e viewer autenticados.
-- [ ] Viewer vê UI mas não consegue enviar (input desabilitado + 403 em POST).
-- [ ] Admin consegue fazer as 10 perguntas-exemplo do PDF.
-- [ ] ≥ 9 de 10 perguntas-exemplo retornam SQL semanticamente correto.
-- [ ] Tabela renderizada por padrão em respostas não-vazias.
-- [ ] Gráfico renderizado quando apropriado.
-- [ ] Toggle 🔒 mascara PII deterministicamente.
-- [ ] "Ver SQL gerado" exibe a query.
-- [ ] Histórico de 10 via `localStorage` + "Limpar".
-- [ ] Perguntas sugeridas funcionais.
-- [ ] Export CSV válido.
-- [ ] Export PNG legível.
-- [ ] Off-topic → recusa amigável.
-- [ ] Query maliciosa bloqueada.
-- [ ] Tentativa de ler `usuarios` bloqueada.
-- [ ] Retry recupera de falha.
-- [ ] Fallback amigável após 3 falhas.
-- [ ] Dark mode 100% funcional.
-- [ ] Responsivo em mobile (≥ 360px).
-- [ ] Funciona com `docker compose up --build`.
-- [ ] Funciona com inicialização manual.
-- [ ] `README.md` atualizado.
+- [x] Rota `/assistente` acessível para admin e viewer autenticados.
+- [x] Viewer vê UI mas não consegue enviar (input desabilitado + 403 em POST).
+- [x] Admin consegue fazer as 10 perguntas-exemplo do PDF.
+- [x] ≥ 9 de 10 perguntas-exemplo retornam SQL semanticamente correto.
+- [x] Tabela renderizada por padrão em respostas não-vazias.
+- [x] Gráfico renderizado quando apropriado.
+- [x] Toggle 🔒 mascara PII deterministicamente.
+- [x] "Ver SQL gerado" exibe a query.
+- [x] Histórico de 10 via `localStorage` + "Limpar".
+- [x] Perguntas sugeridas funcionais.
+- [x] Export CSV válido.
+- [x] Export PNG legível.
+- [x] Off-topic → recusa amigável.
+- [x] Query maliciosa bloqueada.
+- [x] Tentativa de ler `usuarios` bloqueada.
+- [x] Retry recupera de falha.
+- [x] Fallback amigável após 3 falhas.
+- [x] Dark mode 100% funcional.
+- [x] Responsivo em mobile (≥ 360px).
+- [x] Funciona com `docker compose up --build`.
+- [x] Funciona com inicialização manual.
+- [x] `README.md` atualizado.
 
 ### 16.2 Qualidade de código
 
-- [ ] `ruff format --check .` sem diff.
-- [ ] `ruff check .` retorna 0 issues.
-- [ ] `mypy app/` passa 100% em strict mode.
-- [ ] `pytest tests/ -v` passa 100% (existentes + novos).
-- [ ] Cobertura ≥ 80% nos módulos novos do backend.
-- [ ] Docstrings em ≥ 90% da API pública.
-- [ ] `npm run lint` sem warnings.
-- [ ] `npm run type-check` sem erros.
-- [ ] `npm run format:check` sem diff.
-- [ ] Nenhuma função backend com complexidade > 10.
-- [ ] Nenhum módulo backend > 300 linhas.
-- [ ] Nenhum componente React > 150 linhas.
-- [ ] Zero `any` explícito no frontend.
-- [ ] Zero `print()` no backend (apenas `logging`).
-- [ ] Zero `os.getenv()` fora de `config.py`.
+- [x] `ruff format --check .` sem diff.
+- [x] `ruff check .` retorna 0 issues.
+- [x] `mypy app/` passa 100% em strict mode.
+- [x] `pytest tests/ -v` passa 100% (existentes + novos).
+- [x] Cobertura ≥ 80% nos módulos novos do backend.
+- [x] Docstrings em ≥ 90% da API pública.
+- [x] `npm run lint` sem warnings.
+- [x] `npm run type-check` sem erros.
+- [x] `npm run format:check` sem diff.
+- [x] Nenhuma função backend com complexidade > 10.
+- [x] Nenhum módulo backend > 300 linhas.
+- [x] Nenhum componente React > 150 linhas.
+- [x] Zero `any` explícito no frontend.
+- [x] Zero `print()` no backend (apenas `logging`).
+- [x] Zero `os.getenv()` fora de `config.py`.

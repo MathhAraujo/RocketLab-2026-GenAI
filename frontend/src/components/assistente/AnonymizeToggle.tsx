@@ -25,7 +25,7 @@ export default function AnonymizeToggle({ checked, onChange }: AnonymizeTogglePr
         className={[
           'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent',
           'transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1',
-          checked ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600',
+          checked ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-gray-600',
         ].join(' ')}
       >
         <span

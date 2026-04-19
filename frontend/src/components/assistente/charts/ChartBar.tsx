@@ -1,8 +1,7 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const CHART_COLOR = '#6366f1';
-const AXIS_COLOR = '#9ca3af';
-const GRID_COLOR = '#e5e7eb';
+import { useTheme } from '../../../contexts/ThemeContext';
+
 const CHART_HEIGHT = 300;
 
 type ChartBarProps = {
@@ -12,14 +11,21 @@ type ChartBarProps = {
 };
 
 export function ChartBar({ dados, eixo_x, eixo_y }: ChartBarProps): JSX.Element {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const gridColor = isDark ? '#3f3f46' : '#e5e7eb';
+  const axisColor = isDark ? '#71717a' : '#9ca3af';
+  const chartColor = isDark ? '#818cf8' : '#6366f1';
+
   return (
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
       <BarChart data={dados} margin={{ top: 8, right: 16, bottom: 48, left: 16 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
-        <XAxis dataKey={eixo_x} stroke={AXIS_COLOR} angle={-30} textAnchor="end" interval={0} />
-        <YAxis stroke={AXIS_COLOR} />
+        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+        <XAxis dataKey={eixo_x} stroke={axisColor} angle={-30} textAnchor="end" interval={0} />
+        <YAxis stroke={axisColor} />
         <Tooltip />
-        <Bar dataKey={eixo_y} fill={CHART_COLOR} radius={[4, 4, 0, 0]} />
+        <Bar dataKey={eixo_y} fill={chartColor} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

@@ -1,5 +1,7 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
+import { useTheme } from '../../../contexts/ThemeContext';
+
 const PIE_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
 const CHART_HEIGHT = 320;
 
@@ -10,6 +12,11 @@ type ChartPieProps = {
 };
 
 export function ChartPie({ dados, eixo_x, eixo_y }: ChartPieProps): JSX.Element {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const legendTextColor = isDark ? '#d4d4d8' : '#3f3f46';
+
   return (
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
       <PieChart>
@@ -27,7 +34,7 @@ export function ChartPie({ dados, eixo_x, eixo_y }: ChartPieProps): JSX.Element 
           ))}
         </Pie>
         <Tooltip />
-        <Legend />
+        <Legend wrapperStyle={{ color: legendTextColor }} />
       </PieChart>
     </ResponsiveContainer>
   );

@@ -40,7 +40,7 @@ e sugerir visualizações adequadas.
 - Receita total de um pedido = SUM(preco_BRL + preco_frete) em itens_pedidos agrupado por id_pedido.
 - Receita por categoria: join itens_pedidos -> produtos, GROUP BY categoria_produto.
 - Receita por estado: join itens_pedidos -> pedidos -> consumidores, GROUP BY estado.
-- `pedidos.entrega_no_prazo` é String; use = 'sim' / = 'nao'.
+- `pedidos.entrega_no_prazo` é String — use = 'Sim' ou = 'Não' (maiúscula, acento). NUNCA minúsculas nem TRUE/FALSE.
 - Prefira joins a partir das tabelas de fato em vez de colunas desnormalizadas em `produtos`,
   exceto quando a pergunta for sobre elas.
 
@@ -66,6 +66,24 @@ Pergunta: "Top 10 produtos mais vendidos"
 -> forcar_tabela: true
 -> explicacao_seca: "Listei os 10 produtos com maior volume de vendas, ordenados decrescente."
 -> eh_off_topic: false
+
+Pergunta: "Receita total por categoria"
+-> sql: SELECT p.categoria_produto, SUM(ip.preco_BRL + ip.preco_frete) AS receita_total FROM itens_pedidos ip JOIN produtos p ON ip.id_produto = p.id_produto GROUP BY p.categoria_produto ORDER BY receita_total DESC LIMIT 20
+-> sugestao_grafico: "bar"
+-> grafico_config: {{"eixo_x": "categoria_produto", "eixo_y": "receita_total"}}
+-> forcar_tabela: true
+
+Pergunta: "Pedidos por estado"
+-> sql: SELECT c.estado, COUNT(p.id_pedido) AS total_pedidos FROM pedidos p JOIN consumidores c ON p.id_consumidor = c.id_consumidor GROUP BY c.estado ORDER BY total_pedidos DESC LIMIT 50
+-> sugestao_grafico: "bar"
+-> grafico_config: {{"eixo_x": "estado", "eixo_y": "total_pedidos"}}
+-> forcar_tabela: true
+
+Pergunta: "Receita total por mês"
+-> sql: SELECT strftime('%Y-%m', p.pedido_compra_timestamp) AS mes, SUM(ip.preco_BRL + ip.preco_frete) AS receita_total FROM pedidos p JOIN itens_pedidos ip ON p.id_pedido = ip.id_pedido WHERE p.pedido_compra_timestamp IS NOT NULL GROUP BY mes ORDER BY mes LIMIT 1000
+-> sugestao_grafico: "line"
+-> grafico_config: {{"eixo_x": "mes", "eixo_y": "receita_total"}}
+-> forcar_tabela: true
 
 Pergunta: "me escreve um poema sobre pedidos"
 -> sql: ""
@@ -107,9 +125,7 @@ class SqlGenerationResult(BaseModel):
 
 def _make_agent() -> Agent[None, SqlGenerationResult]:
     model: GoogleModel | str = (
-        GoogleModel(
-            "gemini-2.5-flash-lite", provider=GoogleProvider(api_key=settings.GOOGLE_API_KEY)
-        )
+        GoogleModel("gemini-2.5-flash", provider=GoogleProvider(api_key=settings.GOOGLE_API_KEY))
         if settings.GOOGLE_API_KEY
         else "google-gla:gemini-2.5-flash"
     )

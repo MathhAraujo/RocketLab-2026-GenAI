@@ -30,7 +30,7 @@ from app.services.sql_guardrail import QueryNotAllowedError, validate_and_harden
 
 logger = logging.getLogger(__name__)
 
-_QUERY_TIMEOUT: Final[float] = 10.0
+_QUERY_TIMEOUT: Final[float] = 30.0
 _INSIGHT_MIN_ROWS: Final[int] = 3
 _INSIGHT_MAX_ROWS: Final[int] = 100
 _VALID_CHART_TYPES: Final[frozenset[str]] = frozenset({"bar", "line", "pie", "area", "scatter"})

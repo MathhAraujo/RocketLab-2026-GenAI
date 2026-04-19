@@ -50,7 +50,7 @@ SCHEMA_BLOCK: Final[str] = """
 - tempo_entrega_dias (Float, nullable)
 - tempo_entrega_estimado_dias (Float, nullable)
 - diferenca_entrega_dias (Float, nullable) — positivo = atraso
-- entrega_no_prazo (String 10, nullable) — NÃO é boolean; use = 'sim' / = 'nao'
+- entrega_no_prazo (String 10, nullable) — NÃO é boolean; use = 'Sim' / = 'Não' (com maiúscula e acento)
 
 ### itens_pedidos — itens de cada pedido
 - id_pedido (String 32, FK → pedidos.id_pedido, not null) — PK composta com id_item
@@ -84,5 +84,5 @@ SCHEMA_BLOCK: Final[str] = """
 - Receita por estado: JOIN itens_pedidos → pedidos → consumidores, GROUP BY estado.
 - Colunas agregadas em produtos (total_vendas, preco_medio etc.) são atalhos; prefira JOINs a partir
   das tabelas de fato quando precisar de dados atualizados ou filtrados.
-- pedidos.entrega_no_prazo é String(10) — use = 'sim' ou = 'nao', NUNCA = TRUE / = FALSE.
+- pedidos.entrega_no_prazo é String(10) — use = 'Sim' ou = 'Não' (maiúscula, acento), NUNCA minúsculas nem TRUE/FALSE.
 """.strip()

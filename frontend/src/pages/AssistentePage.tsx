@@ -21,6 +21,7 @@ export function AssistentePage(): JSX.Element {
   const [resposta, setResposta] = useState<RespostaAssistente | null>(null);
   const [erroApi, setErroApi] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [sidebarAberta, setSidebarAberta] = useState(false);
 
   const handleSubmit = async () => {
     if (!pergunta.trim() || carregando) return;
@@ -38,18 +39,61 @@ export function AssistentePage(): JSX.Element {
     }
   };
 
+  const handlePickQuestion = (q: string) => {
+    setPergunta(q);
+    setSidebarAberta(false);
+  };
+
   return (
-    <div className="flex h-full gap-4">
-      {/* Sidebar */}
-      <aside className="hidden w-56 shrink-0 lg:block">
-        <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-          <HistorySidebar historico={historico} onPick={setPergunta} onLimpar={limpar} />
+    <div className="relative flex h-full min-w-0 gap-4">
+      {/* Mobile overlay backdrop */}
+      {sidebarAberta && (
+        <div
+          className="fixed inset-0 z-20 bg-black/40 md:hidden"
+          aria-hidden="true"
+          onClick={() => setSidebarAberta(false)}
+        />
+      )}
+
+      {/* Sidebar — fixed overlay on mobile, static column on md+ */}
+      <aside
+        className={[
+          'fixed inset-y-0 left-0 z-30 w-64 bg-white p-3 shadow-lg transition-transform dark:bg-gray-900',
+          'md:static md:z-auto md:w-56 md:translate-x-0 md:bg-transparent md:p-0 md:shadow-none',
+          sidebarAberta ? 'translate-x-0' : '-translate-x-full',
+        ].join(' ')}
+      >
+        <div className="h-full rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+          <HistorySidebar
+            historico={historico}
+            onPick={handlePickQuestion}
+            onLimpar={limpar}
+            onClose={() => setSidebarAberta(false)}
+          />
         </div>
       </aside>
 
       {/* Main area */}
       <main className="flex min-w-0 flex-1 flex-col gap-4">
-        {isAdmin && <AnonymizeToggle checked={anonimizar} onChange={setAnonimizar} />}
+        {/* Mobile header row: hamburger + toggle */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            aria-label="Abrir histórico"
+            onClick={() => setSidebarAberta(true)}
+            className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            ☰
+          </button>
+          {isAdmin && <AnonymizeToggle checked={anonimizar} onChange={setAnonimizar} />}
+        </div>
+
+        {/* Desktop-only toggle (md and above) */}
+        {isAdmin && (
+          <div className="hidden md:block">
+            <AnonymizeToggle checked={anonimizar} onChange={setAnonimizar} />
+          </div>
+        )}
 
         <PromptInput
           value={pergunta}

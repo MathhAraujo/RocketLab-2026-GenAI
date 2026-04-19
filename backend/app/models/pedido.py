@@ -17,7 +17,7 @@ class Pedido(Base):
 
     id_pedido: Mapped[str] = mapped_column(String(32), primary_key=True)
     id_consumidor: Mapped[str] = mapped_column(
-        String(32), ForeignKey("consumidores.id_consumidor"), nullable=False
+        String(32), ForeignKey("consumidores.id_consumidor"), nullable=False, index=True
     )
     status: Mapped[str] = mapped_column(String(50))
     pedido_compra_timestamp: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

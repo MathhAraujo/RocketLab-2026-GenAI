@@ -169,6 +169,7 @@ Ao acessar o sistema pela primeira vez, clique em "Criar uma nova conta" na tela
 | `DATABASE_URL` | `sqlite:///./database.db` | URL de conexao com o banco SQLite |
 | `JWT_SECRET` | *(gerado automaticamente)* | Chave secreta para assinatura dos tokens JWT |
 | `ALLOWED_ORIGINS` | `["http://localhost:5173","http://127.0.0.1:5173"]` | Origens permitidas pelo CORS |
+| `GOOGLE_API_KEY` | *(obrigatório para o Assistente)* | Chave da API Gemini; sem ela `/api/assistente/perguntar` retorna 503 |
 
 Em producao, defina `JWT_SECRET` com um valor longo, aleatorio e unico. Sem um arquivo `.env` contendo `JWT_SECRET`, uma chave aleatoria e gerada a cada reinicio do servidor, invalidando todos os tokens existentes. Um arquivo `backend/.env.example` com valores de referencia esta disponivel no repositorio.
 
@@ -240,6 +241,60 @@ http://192.168.1.100:5173
 ```
 
 > Se a pagina nao carregar, verifique se o firewall do sistema operacional permite conexoes nas portas 5173 e 8000. No Windows, isso pode ser ajustado em "Firewall do Windows Defender > Regras de Entrada".
+
+## Assistente de Análise
+
+A rota `/assistente` oferece um dashboard com agente Text-to-SQL (PydanticAI + Gemini 2.5 Flash). Usuários formulam perguntas em linguagem natural e recebem tabelas, gráficos e uma explicação analítica gerada a partir do banco de dados do e-commerce.
+
+### Configuração da chave Gemini
+
+1. Obtenha uma chave em [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Adicione a chave em `backend/.env` (execução manual) e na raiz `.env` (Docker):
+
+```dotenv
+GOOGLE_API_KEY=sua_chave_aqui
+```
+
+Sem a variável definida, `GET /api/assistente/saude` retorna `"gemini_configurado": false` e `POST /api/assistente/perguntar` retorna HTTP 503.
+
+### Perfis de acesso
+
+| Perfil | Pode enviar perguntas | Visualiza resultados |
+|---|---|---|
+| `admin` | Sim | Sim |
+| `viewer` | Não (input desabilitado + 403) | Sim (histórico, sugestões) |
+
+### Perguntas de exemplo
+
+1. Top 10 produtos mais vendidos
+2. Qual a distribuição de pedidos por status?
+3. Quais categorias de produto têm maior receita total?
+4. Qual a média de avaliação dos pedidos por categoria?
+5. Quantos pedidos foram feitos por estado?
+6. Quais são os 5 vendedores com maior volume de vendas?
+7. Qual o percentual de pedidos entregues no prazo?
+8. Quais produtos têm avaliação média abaixo de 3?
+9. Qual a receita total por mês?
+10. Qual a receita média por pedido agrupada por estado?
+
+### Guardrails e segurança
+
+- **SELECT-only:** qualquer DDL/DML (`INSERT`, `UPDATE`, `DELETE`, `DROP`, etc.) é bloqueado antes da execução.
+- **Tabela `usuarios` bloqueada:** consultas que referenciam essa tabela são rejeitadas com HTTP 400.
+- **LIMIT 1000:** toda query recebe um limite máximo automático para evitar varreduras completas.
+- **Engine read-only:** o banco é aberto em modo somente-leitura no SQLite (`mode=ro`).
+
+### Anonimização
+
+O toggle 🔒 ("Modo anônimo") mascara PII nas respostas antes de enviá-las ao frontend:
+
+| Campo | Transformação |
+|---|---|
+| `nome_consumidor`, `nome_vendedor`, `autor_resposta` | SHA-1 truncado para 6 chars → `Consumidor_abc123` |
+| `prefixo_cep` | Mantém 5 primeiros dígitos, zera o restante |
+| `comentario`, `titulo_comentario` | Truncado em 40 chars e substituído por `[comentário ocultado]` |
+
+---
 
 ## Qualidade de código — frontend
 

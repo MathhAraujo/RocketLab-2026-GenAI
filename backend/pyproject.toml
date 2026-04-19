@@ -28,6 +28,8 @@ max-complexity = 10
 # FastAPI usa Depends() em assinaturas de função — padrão legítimo do framework
 "app/routers/*" = ["B008"]
 "app/dependencies.py" = ["B008"]
+# SQL inline em strings de system prompt não pode ser quebrado sem prejudicar legibilidade
+"app/agents/*" = ["E501"]
 
 [tool.ruff.format]
 quote-style = "double"
