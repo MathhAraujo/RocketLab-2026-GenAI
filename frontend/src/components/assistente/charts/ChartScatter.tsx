@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 
 import { useTheme } from '../../../contexts/ThemeContext';
+import { formatCell, sanitizeLabel } from '../../../utils/formatters';
 
 const CHART_HEIGHT = 300;
 
@@ -34,7 +35,13 @@ export function ChartScatter({ dados, eixo_x, eixo_y }: ChartScatterProps): JSX.
         <CartesianGrid stroke={gridColor} />
         <XAxis dataKey="x" name={eixo_x} stroke={axisColor} type="number" />
         <YAxis dataKey="y" name={eixo_y} stroke={axisColor} type="number" />
-        <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+        <Tooltip
+          cursor={{ strokeDasharray: '3 3' }}
+          formatter={(value, name) => [
+            formatCell(String(name), value),
+            sanitizeLabel(String(name)),
+          ]}
+        />
         <Scatter data={points} fill={chartColor} />
       </ScatterChart>
     </ResponsiveContainer>

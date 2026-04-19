@@ -1,5 +1,9 @@
+import { useState } from 'react';
+
 import type { TabelaVisualizacao } from '../../types/assistente';
-import { formatCell } from '../../utils/formatters';
+import { formatCell, sanitizeLabel } from '../../utils/formatters';
+
+const TABLE_PAGE_SIZE = 10;
 
 const FALLBACK_SLUG = 'tabela';
 
@@ -43,6 +47,10 @@ function downloadCsv(content: string, filename: string): void {
 
 export function DynamicTable({ visualizacao, isAdmin }: DynamicTableProps): JSX.Element {
   const { titulo, colunas, linhas } = visualizacao;
+  const [expanded, setExpanded] = useState(false);
+
+  const visibleRows = expanded ? linhas : linhas.slice(0, TABLE_PAGE_SIZE);
+  const remaining = linhas.length - TABLE_PAGE_SIZE;
 
   const handleDownloadCsv = () => {
     const slug = toSlug(titulo) || FALLBACK_SLUG;
@@ -76,13 +84,13 @@ export function DynamicTable({ visualizacao, isAdmin }: DynamicTableProps): JSX.
                   scope="col"
                   className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300"
                 >
-                  {col}
+                  {sanitizeLabel(col)}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
-            {linhas.map((row, rowIdx) => (
+            {visibleRows.map((row, rowIdx) => (
               <tr key={`row-${rowIdx}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
                 {row.map((cell, colIdx) => (
                   <td
@@ -97,6 +105,15 @@ export function DynamicTable({ visualizacao, isAdmin }: DynamicTableProps): JSX.
           </tbody>
         </table>
       </div>
+      {!expanded && remaining > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="mt-1 w-full rounded py-1.5 text-xs text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/60"
+        >
+          Mostrar mais ({remaining})
+        </button>
+      )}
     </div>
   );
 }

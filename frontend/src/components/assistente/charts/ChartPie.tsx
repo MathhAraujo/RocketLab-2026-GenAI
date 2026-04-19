@@ -1,6 +1,7 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { useTheme } from '../../../contexts/ThemeContext';
+import { formatCell, sanitizeLabel } from '../../../utils/formatters';
 
 const PIE_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
 const CHART_HEIGHT = 320;
@@ -33,8 +34,13 @@ export function ChartPie({ dados, eixo_x, eixo_y }: ChartPieProps): JSX.Element 
             <Cell key={`slice-${idx}`} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip />
-        <Legend wrapperStyle={{ color: legendTextColor }} />
+        <Tooltip
+          formatter={(value, name) => [formatCell(eixo_y, value), sanitizeLabel(String(name))]}
+        />
+        <Legend
+          wrapperStyle={{ color: legendTextColor }}
+          formatter={(value) => sanitizeLabel(String(value))}
+        />
       </PieChart>
     </ResponsiveContainer>
   );

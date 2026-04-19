@@ -431,6 +431,8 @@ Scripts em `package.json`:
 | D19 | **Ferramental backend** | `ruff` + `mypy` (strict) — obrigatórios | Prioridade de qualidade |
 | D20 | **Ferramental frontend** | ESLint endurecido + Prettier — obrigatórios | Prioridade de qualidade |
 | D21 | Formatação de células numéricas | Display-only em `DynamicTable` (frontend) | UX — monetárias como BRL, floats com ≤ 4 casas; não altera contrato da API |
+| D22 | Sanitização de labels de gráfico | Display-only em `formatters.ts` | UX — labels SQL brutos (`count(*)`, `valor_media`) transformados em texto legível; não altera contrato da API |
+| D23 | Paginação de tabelas longas | 10 linhas visíveis por padrão; botão "Mostrar mais" expansível | UX — tabelas com dezenas de linhas não sobrecarregam a tela; sem virtualização |
 
 ---
 
@@ -716,6 +718,30 @@ Botão "Limpar": localStorage.removeItem(...)
 Colunas cujo nome contenha `preco`, `frete`, `receita`, `valor` ou `brl` (case-insensitive) são formatadas como **BRL** (`R$ X.XXX,XX`, locale `pt-BR`). Demais floats com parte decimal não-inteira exibem **no máximo 4 casas decimais** (sem zeros à direita). Inteiros são exibidos sem casas decimais. Nulos exibem `—`.
 
 Implementada em `frontend/src/utils/formatters.ts` — função `formatCell(columnName: string, value: unknown): string`, consumida por `DynamicTable`. O CSV exporta os valores originais (sem formatação de exibição).
+
+#### §8.1.2 — Sanitização de labels de gráfico
+
+Labels exibidos nos eixos X/Y e nos tooltips dos gráficos Recharts são sanitizados antes de renderizar. Implementado em `frontend/src/utils/formatters.ts` — função `sanitizeLabel(raw: string): string`.
+
+Transformações aplicadas em ordem:
+1. Corta tudo a partir do primeiro `(`: `count(id_pedido)` → `count`, `valor_media(count(xxx))` → `valor_media`
+2. Substitui `_` por espaço
+3. Title case (primeira letra de cada palavra maiúscula)
+4. Trunca em `MAX_LABEL_LENGTH` (20 chars) com `…` se necessário
+
+Exemplos: `valor_media(count(xxx))` → `Valor Media`, `categoria_produto` → `Categoria Produto`, `total_vendas` → `Total Vendas`.
+
+A sanitização é aplicada:
+- No `tickFormatter` do `<XAxis>` dos wrappers em `charts/`
+- No `formatter` do `<Tooltip>` de cada wrapper (parâmetro `name`, que é o nome da série/coluna)
+- Nos cabeçalhos de coluna do `DynamicTable` (display apenas; o `formatCell` continua usando o nome raw para detecção monetária)
+- **Não** nos dados brutos, nem no CSV/PNG exportados
+
+#### §8.1.3 — Paginação de tabelas longas
+
+`DynamicTable` exibe as primeiras `TABLE_PAGE_SIZE = 10` linhas por padrão. Se `linhas.length > TABLE_PAGE_SIZE`, um botão `"Mostrar mais (N)"` aparece abaixo da tabela, onde N é o número de linhas restantes. Clicar expande para exibir todas as linhas. Não há paginação múltipla — é uma expansão simples.
+
+O CSV exporta sempre o conjunto completo de linhas (independente do estado expandido/colapsado).
 
 **Hooks (`frontend/src/hooks/`):** `useLocalHistory.ts`
 **API (`frontend/src/api/`):** `assistenteApi.ts`

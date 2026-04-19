@@ -1,7 +1,15 @@
 import { CATEGORIA_LABELS } from './constants';
 
-const MONETARY_KEYWORDS: readonly string[] = ['preco', 'frete', 'receita', 'valor', 'brl'];
+const MONETARY_KEYWORDS: readonly string[] = [
+  'preco',
+  'frete',
+  'receita',
+  'valor',
+  'brl',
+  'ticket',
+];
 const MAX_DECIMAL_PLACES = 4;
+const MAX_LABEL_LENGTH = 20;
 
 export function formatCategoria(slug: string | null | undefined): string {
   if (!slug) return 'Sem Categoria';
@@ -33,6 +41,18 @@ export function formatNumber(value: number | null | undefined): string {
 export function formatRating(value: number | null | undefined): string {
   if (value == null) return '—';
   return value.toFixed(1);
+}
+
+export function sanitizeLabel(raw: string): string {
+  const withoutParens = raw.replace(/\(.*$/, '');
+  const withSpaces = withoutParens.replace(/_/g, ' ');
+  const titleCase = withSpaces
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+  if (titleCase.length <= MAX_LABEL_LENGTH) return titleCase;
+  return `${titleCase.slice(0, MAX_LABEL_LENGTH)}…`;
 }
 
 export function formatCell(columnName: string, value: unknown): string {

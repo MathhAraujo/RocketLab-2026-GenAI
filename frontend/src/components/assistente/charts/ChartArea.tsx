@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 
 import { useTheme } from '../../../contexts/ThemeContext';
+import { formatCell, sanitizeLabel } from '../../../utils/formatters';
 
 const CHART_HEIGHT = 300;
 
@@ -31,9 +32,18 @@ export function ChartArea({ dados, eixo_x, eixo_y }: ChartAreaProps): JSX.Elemen
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
       <AreaChart data={dados} margin={{ top: 8, right: 16, bottom: 48, left: 16 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-        <XAxis dataKey={eixo_x} stroke={axisColor} angle={-30} textAnchor="end" interval={0} />
+        <XAxis
+          dataKey={eixo_x}
+          stroke={axisColor}
+          angle={-30}
+          textAnchor="end"
+          interval={0}
+          tickFormatter={(v: unknown) => sanitizeLabel(String(v))}
+        />
         <YAxis stroke={axisColor} />
-        <Tooltip />
+        <Tooltip
+          formatter={(value, name) => [formatCell(eixo_y, value), sanitizeLabel(String(name))]}
+        />
         <Area
           type="monotone"
           dataKey={eixo_y}
