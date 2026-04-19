@@ -6,6 +6,8 @@ from typing import Any, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field
 
+FormatType: TypeAlias = Literal["monetario", "float", "inteiro", "texto"]
+
 
 class PerguntaRequest(BaseModel):
     """Payload for the /perguntar endpoint."""
@@ -23,6 +25,7 @@ class TabelaVisualizacao(BaseModel):
     titulo: str
     colunas: list[str]
     linhas: list[list[Any]]
+    formatacao_colunas: dict[str, FormatType] | None = None
 
 
 class GraficoVisualizacao(BaseModel):

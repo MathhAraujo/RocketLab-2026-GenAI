@@ -430,7 +430,7 @@ Scripts em `package.json`:
 | D18 | Testes | Backend obrigatório (semi-TDD); frontend e LLM opcionais | Definição do stakeholder |
 | D19 | **Ferramental backend** | `ruff` + `mypy` (strict) — obrigatórios | Prioridade de qualidade |
 | D20 | **Ferramental frontend** | ESLint endurecido + Prettier — obrigatórios | Prioridade de qualidade |
-| D21 | Formatação de células numéricas | Display-only em `DynamicTable` (frontend) | UX — monetárias como BRL, floats com ≤ 4 casas; não altera contrato da API |
+| D21 | Formatação de células numéricas | **Híbrida: hint da LLM (primário) + keyword fallback (secundário)** | A LLM tem contexto semântico para detectar tipos que keywords não cobrem (ex: aliases SQL); keywords garantem cobertura quando o hint está ausente. Guardrails fixos: monetário → BRL com exatamente 2 casas; float → exatamente 4 casas decimais com zeros à direita. |
 | D22 | Sanitização de labels de gráfico | Display-only em `formatters.ts` | UX — labels SQL brutos (`count(*)`, `valor_media`) transformados em texto legível; não altera contrato da API |
 | D23 | Paginação de tabelas longas | 10 linhas visíveis por padrão; botão "Mostrar mais" expansível | UX — tabelas com dezenas de linhas não sobrecarregam a tela; sem virtualização |
 
@@ -715,9 +715,19 @@ Botão "Limpar": localStorage.removeItem(...)
 
 #### 8.1.1 Formatação de células numéricas
 
-Colunas cujo nome contenha `preco`, `frete`, `receita`, `valor` ou `brl` (case-insensitive) são formatadas como **BRL** (`R$ X.XXX,XX`, locale `pt-BR`). Demais floats com parte decimal não-inteira exibem **no máximo 4 casas decimais** (sem zeros à direita). Inteiros são exibidos sem casas decimais. Nulos exibem `—`.
+A formatação de exibição é determinada por **ordem de prioridade**:
 
-Implementada em `frontend/src/utils/formatters.ts` — função `formatCell(columnName: string, value: unknown): string`, consumida por `DynamicTable`. O CSV exporta os valores originais (sem formatação de exibição).
+1. **Hint da LLM** — campo `formatacao_colunas[coluna]` em `TabelaVisualizacao` (primário)
+2. **Keyword fallback** — nome da coluna contém `preco`, `frete`, `receita`, `valor`, `brl` ou `ticket` (quando hint ausente)
+
+**Guardrails fixos (independente da fonte):**
+- `"monetario"` → BRL (`Intl.NumberFormat`, `minimumFractionDigits: 2, maximumFractionDigits: 2`)
+- `"float"` → exatamente 4 casas decimais com zeros à direita (`minimumFractionDigits: 4, maximumFractionDigits: 4`)
+- `"inteiro"` → sem casas decimais
+- `"texto"` / hint ausente + não-numérico → sem formatação numérica
+- Nulos → `—`
+
+Implementada em `frontend/src/utils/formatters.ts` — função `formatCell(columnName: string, value: unknown, hint?: FormatType): string`, consumida por `DynamicTable`. O CSV exporta os valores originais (sem formatação de exibição).
 
 #### §8.1.2 — Sanitização de labels de gráfico
 
@@ -775,7 +785,8 @@ O CSV exporta sempre o conjunto completo de linhas (independente do estado expan
 
 **SQL Agent (`sql_agent`)** — sempre executado
 - Input: pergunta + schema + (histórico de erros se retry)
-- Output: `SqlGenerationResult` com `sql`, `explicacao_seca`, `sugestao_grafico`, `grafico_config`, `forcar_tabela`, `eh_off_topic`, `mensagem_off_topic`
+- Output: `SqlGenerationResult` com `sql`, `explicacao_seca`, `sugestao_grafico`, `grafico_config`, `forcar_tabela`, `eh_off_topic`, `mensagem_off_topic`, `formatacao_colunas`
+- `formatacao_colunas: dict[str, FormatType] | None` — mapa coluna → tipo de formatação; `None` ativa keyword fallback no frontend
 
 **Insight Agent (`insight_agent`)** — condicional
 - Input: pergunta + dados (top 100 linhas) + explicação seca
@@ -1052,6 +1063,9 @@ class PerguntaRequest(BaseModel):
     anonimizar: bool = False
 
 
+FormatType: TypeAlias = Literal["monetario", "float", "inteiro", "texto"]
+
+
 class TabelaVisualizacao(BaseModel):
     """Tabular visualization block."""
 
@@ -1059,6 +1073,7 @@ class TabelaVisualizacao(BaseModel):
     titulo: str
     colunas: list[str]
     linhas: list[list[Any]]
+    formatacao_colunas: dict[str, FormatType] | None = None
 
 
 class GraficoVisualizacao(BaseModel):
@@ -1137,6 +1152,15 @@ Seu único papel é converter perguntas em linguagem natural (português do Bras
 - 1 linha / 1 valor → sem gráfico (`sugestao_grafico="none"`)
 - Usuário pede tipo específico → respeitar
 - Usuário diz "apenas gráfico" / "sem tabela" → `forcar_tabela=false`
+
+### FORMATAÇÃO DE COLUNAS
+Para toda coluna no resultado, informe o tipo em `formatacao_colunas`:
+- "monetario": valores financeiros em BRL (preços, fretes, receitas, totais monetários)
+- "float": decimais sem contexto monetário (avaliações, médias, pesos, ratios)
+- "inteiro": contagens, quantidades, IDs numéricos
+- "texto": strings, datas, categorias — não formatar como número
+Use o contexto semântico da pergunta e do alias AS, não apenas o nome da coluna.
+Exemplo: `SUM(preco_BRL) AS receita_total` → "monetario"; `AVG(avaliacao) AS media` → "float".
 
 ### IDIOMA
 Português do Brasil. `explicacao_seca` com no máximo 2 frases.
@@ -1764,6 +1788,16 @@ Novos códigos HTTP 429 (rate limit excedido) e 503 (quota esgotada) adicionados
 ### §21.3 — Migração do ambiente de execução para Python 3.13.3
 
 Ambiente de desenvolvimento e produção migrado para Python 3.13.3, mantendo compatibilidade com a sintaxe 3.11+.
+
+### §21.5 — Formatação híbrida LLM + keyword
+
+Mecanismo de formatação de `DynamicTable` migrado de keyword-only para híbrido:
+- LLM retorna `formatacao_colunas: dict[str, FormatType] | None` em `SqlGenerationResult`; o serviço propaga o campo até `TabelaVisualizacao`
+- Frontend aplica hint LLM quando disponível; cai em keyword detection quando ausente
+- Guardrail de casas decimais endurecido: `"float"` exibe exatamente 4 casas (com zeros à direita); `"monetario"` exibe exatamente 2 casas (BRL)
+- `FormatType` declarado em `schemas/assistente.py` (backend) e `types/assistente.ts` (frontend)
+
+**Arquivos modificados:** `sql_agent.py`, `schemas/assistente.py`, `assistente_service.py`, `types/assistente.ts`, `formatters.ts`, `DynamicTable.tsx`
 
 ### §21.4 — Formatação contextual de células numéricas
 

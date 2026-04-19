@@ -18,6 +18,7 @@ from pydantic_ai.providers.google import GoogleProvider
 from app.agents.schema_context import SCHEMA_BLOCK
 from app.config import settings
 from app.errors import GeminiNotConfiguredError, GeminiQuotaExhaustedError, GeminiRateLimitError
+from app.schemas.assistente import FormatType
 from app.services.retry import RetryContext
 
 _HTTP_RATE_LIMIT: Final[int] = 429
@@ -57,6 +58,15 @@ Em `grafico_config.eixo_x` e `grafico_config.eixo_y`, use EXATAMENTE os nomes da
 do SELECT — incluindo aliases definidos com AS. Nunca invente nomes que não aparecem no SELECT.
 Exemplo: se o SELECT tem `COUNT(*) AS total_pedidos`, use `"total_pedidos"` em `eixo_y`.
 
+### FORMATAÇÃO DE COLUNAS
+Para toda coluna no resultado, informe o tipo em `formatacao_colunas`:
+- "monetario": valores financeiros em BRL (preços, fretes, receitas, totais monetários)
+- "float": decimais sem contexto monetário (avaliações, médias, pesos, ratios)
+- "inteiro": contagens, quantidades, IDs numéricos
+- "texto": strings, datas, categorias — não formatar como número
+Use o contexto semântico da pergunta e do alias AS, não apenas o nome da coluna.
+Exemplo: `SUM(preco_BRL) AS receita_total` → "monetario"; `AVG(avaliacao) AS media` → "float".
+
 ### IDIOMA
 Português do Brasil. `explicacao_seca` com no máximo 2 frases.
 """.strip()
@@ -91,6 +101,7 @@ class SqlGenerationResult(BaseModel):
     forcar_tabela: bool = True
     eh_off_topic: bool = False
     mensagem_off_topic: str | None = None
+    formatacao_colunas: dict[str, FormatType] | None = None
 
 
 def _make_agent() -> Agent[None, SqlGenerationResult]:

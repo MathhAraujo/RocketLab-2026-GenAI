@@ -1,5 +1,7 @@
 type ChartSubtipo = 'bar' | 'line' | 'pie' | 'area' | 'scatter';
 
+type FormatType = 'monetario' | 'float' | 'inteiro' | 'texto';
+
 type PerguntaRequest = {
   pergunta: string;
   anonimizar: boolean;
@@ -10,6 +12,7 @@ type TabelaVisualizacao = {
   titulo: string;
   colunas: string[];
   linhas: unknown[][];
+  formatacao_colunas: Record<string, FormatType> | null;
 };
 
 type GraficoVisualizacao = {
@@ -42,6 +45,7 @@ type RespostaAssistente = {
 
 export type {
   ChartSubtipo,
+  FormatType,
   GraficoVisualizacao,
   MetadadosResposta,
   PerguntaRequest,

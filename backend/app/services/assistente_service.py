@@ -133,14 +133,28 @@ def _construir_visualizacoes(
     titulo = sql_result.explicacao_seca[:80] or "Resultado"
 
     if sql_result.forcar_tabela:
-        visualizacoes.append(TabelaVisualizacao(titulo=titulo, colunas=columns, linhas=rows))
+        visualizacoes.append(
+            TabelaVisualizacao(
+                titulo=titulo,
+                colunas=columns,
+                linhas=rows,
+                formatacao_colunas=sql_result.formatacao_colunas,
+            )
+        )
 
     grafico = _construir_grafico(sql_result, columns, rows)
     if grafico is not None:
         visualizacoes.append(grafico)
 
     if not visualizacoes:
-        visualizacoes.append(TabelaVisualizacao(titulo=titulo, colunas=columns, linhas=rows))
+        visualizacoes.append(
+            TabelaVisualizacao(
+                titulo=titulo,
+                colunas=columns,
+                linhas=rows,
+                formatacao_colunas=sql_result.formatacao_colunas,
+            )
+        )
 
     return visualizacoes
 

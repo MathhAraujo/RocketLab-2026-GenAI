@@ -92,14 +92,18 @@ export function DynamicTable({ visualizacao, isAdmin }: DynamicTableProps): JSX.
           <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
             {visibleRows.map((row, rowIdx) => (
               <tr key={`row-${rowIdx}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                {row.map((cell, colIdx) => (
-                  <td
-                    key={`cell-${rowIdx}-${colIdx}`}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300"
-                  >
-                    {formatCell(colunas[colIdx] ?? '', cell)}
-                  </td>
-                ))}
+                {row.map((cell, colIdx) => {
+                  const colName = colunas[colIdx] ?? '';
+                  const hint = visualizacao.formatacao_colunas?.[colName];
+                  return (
+                    <td
+                      key={`cell-${rowIdx}-${colIdx}`}
+                      className="px-4 py-2 text-gray-700 dark:text-gray-300"
+                    >
+                      {formatCell(colName, cell, hint)}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

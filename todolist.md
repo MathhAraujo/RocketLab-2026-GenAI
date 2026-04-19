@@ -795,6 +795,45 @@ Pronto quando: tabelas com > 10 linhas mostram 10 + botão; gates limpos.
 
 Referência: PRD §8.1, D23.
 
+### TASK-41 — `FormatType` + `formatacao_colunas` nos schemas backend e system prompt
+
+Arquivos: `backend/app/schemas/assistente.py`, `backend/app/agents/sql_agent.py`.
+
+- [x] Declarar `FormatType: TypeAlias = Literal["monetario", "float", "inteiro", "texto"]` em `schemas/assistente.py` e exportar.
+- [x] Adicionar `formatacao_colunas: dict[str, FormatType] | None = None` em `TabelaVisualizacao`.
+- [x] Importar `FormatType` em `sql_agent.py` e adicionar campo `formatacao_colunas: dict[str, FormatType] | None = None` em `SqlGenerationResult`.
+- [x] Adicionar bloco `### FORMATAÇÃO DE COLUNAS` ao `_SYSTEM_PROMPT` (§12.1 do PRD).
+- [x] Rodar gates backend; confirmar testes existentes passam (campo é opcional).
+
+Pronto quando: import funciona; `mypy` e `ruff` limpos; testes existentes 100%.
+
+Referência: PRD §8.3, §11.2, §12.1, §21.5.
+
+### TASK-42 — Propagar `formatacao_colunas` no `assistente_service.py`
+
+Arquivos: `backend/app/services/assistente_service.py`.
+
+- [x] Em `_construir_visualizacoes`, passar `formatacao_colunas=sql_result.formatacao_colunas` em **ambas** as instâncias de `TabelaVisualizacao(...)`.
+- [x] Rodar gates backend; confirmar testes existentes passam.
+
+Pronto quando: campo propagado ao response; gates limpos.
+
+Referência: PRD §7.2, §21.5.
+
+### TASK-43 — Frontend: `FormatType`, `formatCell` híbrido, `DynamicTable`
+
+Arquivos: `frontend/src/types/assistente.ts`, `frontend/src/utils/formatters.ts`,
+`frontend/src/components/assistente/DynamicTable.tsx`.
+
+- [x] Declarar `type FormatType = 'monetario' | 'float' | 'inteiro' | 'texto'` em `types/assistente.ts`; adicionar `formatacao_colunas: Record<string, FormatType> | null` em `TabelaVisualizacao`; exportar `FormatType`.
+- [x] Em `formatters.ts`: adicionar `_formatFloatFixed` (exatamente 4 casas com zeros via `minimumFractionDigits: MAX_DECIMAL_PLACES`); atualizar `formatCell` para aceitar `hint?: FormatType` — aplicar hint quando presente, cair em keyword fallback quando ausente.
+- [x] Em `DynamicTable.tsx`: passar `visualizacao.formatacao_colunas?.[colunas[colIdx] ?? '']` como terceiro argumento de `formatCell`.
+- [x] Rodar `npm run lint`, `npm run type-check`, `npm run format:check` — zero issues.
+
+Pronto quando: formatação híbrida funcional; guardrails aplicados; gates frontend limpos.
+
+Referência: PRD §8.1.1, §21.5.
+
 ### 🚦 Gate Final
 
 - [x] TODOS os gates de §16 verdes.
