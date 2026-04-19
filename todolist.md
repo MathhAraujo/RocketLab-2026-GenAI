@@ -544,7 +544,7 @@ Arquivos: `ResultRenderer.tsx`, `DynamicTable.tsx`, `DynamicChart.tsx`,
 - [x] `DynamicChart.tsx` (≤ 80): roteia por `subtipo` para o wrapper correspondente; usa `ResponsiveContainer`.
 - [x] Criar os 5 wrappers em `charts/` (≤ 80 linhas cada) usando Recharts primitivos correspondentes.
 - [x] Aplicar dark mode (tokens Tailwind) e cores consistentes.
-- [ ] Validar end-to-end: perguntar `"Top 10 produtos mais vendidos"` e confirmar tabela de 10 linhas + gráfico
+- [x] Validar end-to-end: perguntar `"Top 10 produtos mais vendidos"` e confirmar tabela de 10 linhas + gráfico
       de barras correto.
 
 Pronto quando: "Top 10 produtos" renderiza tabela + bar chart corretos.
@@ -578,11 +578,11 @@ Referência: PRD §8.1, §18 Fase 3.
 
 Arquivos: `frontend/src/components/assistente/SampleQuestions.tsx` (novo).
 
-- [ ] Componente (≤ 60 linhas) com constante `SAMPLE_QUESTIONS: readonly string[]` contendo os 10 exemplos do PDF
+- [x] Componente (≤ 60 linhas) com constante `SAMPLE_QUESTIONS: readonly string[]` contendo os 10 exemplos do PDF
       da atividade.
-- [ ] Renderizar cards clicáveis; `onClick` preenche o input via callback prop `onPick(pergunta: string)`.
-- [ ] Respeitar perfil: cards desabilitados para viewer (§5.1).
-- [ ] Aplicar dark mode e `role="button"` + `aria-disabled` quando desabilitado.
+- [x] Renderizar cards clicáveis; `onClick` preenche o input via callback prop `onPick(pergunta: string)`.
+- [x] Respeitar perfil: cards desabilitados para viewer (§5.1).
+- [x] Aplicar dark mode e `role="button"` + `aria-disabled` quando desabilitado.
 
 Pronto quando: cards funcionais.
 
@@ -593,12 +593,12 @@ Referência: PRD §8.1, §6 US-09, §18 Fase 4.
 Arquivos: `frontend/src/hooks/useLocalHistory.ts` (novo),
 `frontend/src/components/assistente/HistorySidebar.tsx` (novo).
 
-- [ ] `useLocalHistory.ts`: hook exportando `{ historico, adicionar, limpar }`; constante
+- [x] `useLocalHistory.ts`: hook exportando `{ historico, adicionar, limpar }`; constante
       `MAX_HISTORICO: 10`; chave `"assistente:historico"`; FIFO (truncar para 10).
-- [ ] Persistir estrutura `{ pergunta: string; timestamp: number }[]` em `localStorage`.
-- [ ] `HistorySidebar.tsx` (≤ 100 linhas): lista em ordem reversa cronológica; click preenche input; botão
+- [x] Persistir estrutura `{ pergunta: string; timestamp: number }[]` em `localStorage`.
+- [x] `HistorySidebar.tsx` (≤ 100 linhas): lista em ordem reversa cronológica; click preenche input; botão
       "Limpar" chama `limpar()`.
-- [ ] Cobrir dependências de `useEffect` completas (ESLint `react-hooks/exhaustive-deps`).
+- [x] Cobrir dependências de `useEffect` completas (ESLint `react-hooks/exhaustive-deps`).
 
 Pronto quando: histórico persiste; botão "Limpar" funciona.
 
@@ -608,10 +608,10 @@ Referência: PRD §7.6, §8.1, §18 Fase 4.
 
 Arquivos: `frontend/src/components/assistente/AnonymizeToggle.tsx` (novo).
 
-- [ ] Componente (≤ 40 linhas) tipo switch com ícone 🔒; props `checked: boolean` e `onChange: (b: boolean) => void`.
-- [ ] `aria-label="Modo anônimo"`; foco visível.
-- [ ] Propagar o valor até o payload `anonimizar` enviado em `perguntarAoAssistente`.
-- [ ] Validar end-to-end que nomes aparecem como `Consumidor_abc123` quando ativo.
+- [x] Componente (≤ 40 linhas) tipo switch com ícone 🔒; props `checked: boolean` e `onChange: (b: boolean) => void`.
+- [x] `aria-label="Modo anônimo"`; foco visível.
+- [x] Propagar o valor até o payload `anonimizar` enviado em `perguntarAoAssistente`.
+- [x] Validar end-to-end que nomes aparecem como `Consumidor_abc123` quando ativo.
 
 Pronto quando: toggle mascara nomes.
 
@@ -621,10 +621,10 @@ Referência: PRD §7.5, §13, §18 Fase 4.
 
 Arquivos: `frontend/src/components/assistente/DynamicTable.tsx`.
 
-- [ ] Adicionar botão "⬇ CSV" visível para admin.
-- [ ] Gerar CSV a partir de `colunas` + `linhas`, escapando aspas e vírgulas corretamente.
-- [ ] Download via `Blob` + `URL.createObjectURL` + elemento `<a>` temporário.
-- [ ] Arquivo com nome `{titulo-slug}-{timestamp}.csv`.
+- [x] Adicionar botão "⬇ CSV" visível para admin.
+- [x] Gerar CSV a partir de `colunas` + `linhas`, escapando aspas e vírgulas corretamente.
+- [x] Download via `Blob` + `URL.createObjectURL` + elemento `<a>` temporário.
+- [x] Arquivo com nome `{titulo-slug}-{timestamp}.csv`.
 
 Pronto quando: download funciona.
 
@@ -634,10 +634,10 @@ Referência: PRD §6 US-08, §18 Fase 4.
 
 Arquivos: `frontend/src/components/assistente/DynamicChart.tsx`.
 
-- [ ] Adicionar botão "⬇ PNG" visível para admin.
-- [ ] Usar `html2canvas` para capturar o container do gráfico.
-- [ ] Baixar como `{titulo-slug}-{timestamp}.png`.
-- [ ] Garantir cores corretas em dark e light mode antes de capturar.
+- [x] Adicionar botão "⬇ PNG" visível para admin.
+- [x] Usar `html2canvas` para capturar o container do gráfico.
+- [x] Baixar como `{titulo-slug}-{timestamp}.png`.
+- [x] Garantir cores corretas em dark e light mode antes de capturar.
 
 Pronto quando: imagem baixada está legível.
 
@@ -647,9 +647,9 @@ Referência: PRD §6 US-08, §18 Fase 4.
 
 Arquivos: `frontend/src/components/Layout.tsx` (ou equivalente existente).
 
-- [ ] Adicionar `<Link to="/assistente">Assistente</Link>` na navbar.
-- [ ] Estilizar consistentemente com os demais links; incluir estado ativo.
-- [ ] Validar navegação a partir de qualquer página autenticada.
+- [x] Adicionar `<Link to="/assistente">Assistente</Link>` na navbar.
+- [x] Estilizar consistentemente com os demais links; incluir estado ativo.
+- [x] Validar navegação a partir de qualquer página autenticada.
 
 Pronto quando: navegação funciona de qualquer página.
 
@@ -657,8 +657,8 @@ Referência: PRD §8.1, §14.3, §18 Fase 4.
 
 ### 🚦 Gate Fase 4
 
-- [ ] `npm run lint`, `npm run type-check`, `npm run format:check` verdes.
-- [ ] Revisão manual das 4 extras UX (sugestões, histórico, toggle, exportação).
+- [x] `npm run lint`, `npm run type-check`, `npm run format:check` verdes.
+- [x] Revisão manual das 4 extras UX (sugestões, histórico, toggle, exportação).
 
 ---
 

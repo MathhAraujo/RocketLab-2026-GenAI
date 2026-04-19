@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { LayoutDashboard, LayoutGrid, PackagePlus, Sun, Moon, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, LayoutGrid, PackagePlus, Bot, Sun, Moon, LogOut, X } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -14,6 +14,7 @@ interface SidebarProps {
 const navItems = [
   { to: '/catalogo', icon: LayoutGrid, label: 'Catálogo', adminOnly: false },
   { to: '/produtos/novo', icon: PackagePlus, label: 'Novo Produto', adminOnly: true },
+  { to: '/assistente', icon: Bot, label: 'Assistente', adminOnly: false },
 ];
 
 export function Sidebar({

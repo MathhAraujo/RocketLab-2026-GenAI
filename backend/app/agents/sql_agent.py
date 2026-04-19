@@ -107,7 +107,9 @@ class SqlGenerationResult(BaseModel):
 
 def _make_agent() -> Agent[None, SqlGenerationResult]:
     model: GoogleModel | str = (
-        GoogleModel("gemini-2.5-flash", provider=GoogleProvider(api_key=settings.GOOGLE_API_KEY))
+        GoogleModel(
+            "gemini-2.5-flash-lite", provider=GoogleProvider(api_key=settings.GOOGLE_API_KEY)
+        )
         if settings.GOOGLE_API_KEY
         else "google-gla:gemini-2.5-flash"
     )
