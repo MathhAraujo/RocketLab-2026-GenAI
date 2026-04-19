@@ -168,12 +168,12 @@ Referência: PRD §2.1, §18 Fase 1.
 
 Arquivos: `backend/tests/test_sql_guardrail.py` (novo).
 
-- [ ] Criar o arquivo e importar `validate_and_harden` e `QueryNotAllowedError` (imports falharão até TASK-03).
-- [ ] Adicionar os 20 testes listados em §15.3 para `sql_guardrail`, um por caso (SELECT válido, blocos de DDL/DML,
+- [x] Criar o arquivo e importar `validate_and_harden` e `QueryNotAllowedError` (imports falharão até TASK-03).
+- [x] Adicionar os 20 testes listados em §15.3 para `sql_guardrail`, um por caso (SELECT válido, blocos de DDL/DML,
       `usuarios` em `FROM`/`JOIN`/`subquery`/case-insensitive, multi-statement, injeção/respeito/cap de `LIMIT`,
       SQL malformado, SQL vazio, `EXPLAIN`/`PRAGMA`).
-- [ ] Usar `pytest.mark.parametrize` onde houver família de casos similares (ex.: bloqueios de DDL).
-- [ ] Rodar `pytest tests/test_sql_guardrail.py` e confirmar estado vermelho (coleta + falhas).
+- [x] Usar `pytest.mark.parametrize` onde houver família de casos similares (ex.: bloqueios de DDL).
+- [x] Rodar `pytest tests/test_sql_guardrail.py` e confirmar estado vermelho (coleta + falhas).
 
 Pronto quando: `pytest tests/test_sql_guardrail.py` coleta e falha.
 
@@ -183,14 +183,14 @@ Referência: PRD §15.3 (`tests/test_sql_guardrail.py`), §18 Fase 1.
 
 Arquivos: `backend/app/services/sql_guardrail.py` (novo), `backend/app/services/__init__.py`.
 
-- [ ] Criar o módulo com module docstring e `from __future__ import annotations`, imports stdlib/third-party/local.
-- [ ] Declarar `MAX_ROWS: Final[int] = 1000` e `FORBIDDEN_TABLES: Final[frozenset[str]] = frozenset({"usuarios"})`.
-- [ ] Declarar exceção `QueryNotAllowedError(ValueError)` com docstring.
-- [ ] Implementar `validate_and_harden(sql: str) -> str` conforme §10.2, com docstring Google
+- [x] Criar o módulo com module docstring e `from __future__ import annotations`, imports stdlib/third-party/local.
+- [x] Declarar `MAX_ROWS: Final[int] = 1000` e `FORBIDDEN_TABLES: Final[frozenset[str]] = frozenset({"usuarios"})`.
+- [x] Declarar exceção `QueryNotAllowedError(ValueError)` com docstring.
+- [x] Implementar `validate_and_harden(sql: str) -> str` conforme §10.2, com docstring Google
       cobrindo Args/Returns/Raises.
-- [ ] Implementar helpers privados `_parse_single_statement`, `_ensure_select`, `_ensure_no_forbidden_tables`,
+- [x] Implementar helpers privados `_parse_single_statement`, `_ensure_select`, `_ensure_no_forbidden_tables`,
       `_enforce_limit` exatamente como §10.2.
-- [ ] Rodar todos os gates; confirmar testes de TASK-02 passam 100%.
+- [x] Rodar todos os gates; confirmar testes de TASK-02 passam 100%.
 
 Pronto quando: testes passam 100%; `ruff check` e `mypy` limpos no módulo.
 
