@@ -462,9 +462,9 @@ Referência: PRD §11.3, §14.3, §18 Fase 2.
 
 Arquivos: `frontend/package.json`, `frontend/package-lock.json`.
 
-- [ ] Rodar `npm install recharts html2canvas`.
-- [ ] Confirmar entradas em `dependencies` do `package.json`.
-- [ ] Rodar `npm run lint` e `npm run type-check` para garantir nada quebrou.
+- [x] Rodar `npm install recharts html2canvas`.
+- [x] Confirmar entradas em `dependencies` do `package.json`.
+- [x] Rodar `npm run lint` e `npm run type-check` para garantir nada quebrou.
 
 Pronto quando: `npm install` ok.
 
@@ -474,13 +474,13 @@ Referência: PRD §2.2, §18 Fase 3.
 
 Arquivos: `frontend/src/types/assistente.ts` (novo).
 
-- [ ] Declarar `type PerguntaRequest`, `type TabelaVisualizacao`, `type GraficoVisualizacao`,
+- [x] Declarar `type PerguntaRequest`, `type TabelaVisualizacao`, `type GraficoVisualizacao`,
       `type Visualizacao = TabelaVisualizacao | GraficoVisualizacao`, `type MetadadosResposta`,
       `type RespostaAssistente`, espelhando exatamente os schemas de §11.2.
-- [ ] Declarar `type ChartSubtipo = 'bar' | 'line' | 'pie' | 'area' | 'scatter'` e reutilizar em
+- [x] Declarar `type ChartSubtipo = 'bar' | 'line' | 'pie' | 'area' | 'scatter'` e reutilizar em
       `GraficoVisualizacao`.
-- [ ] Usar `type` em vez de `interface` (§2.5.3).
-- [ ] Rodar `npm run type-check` para garantir zero erros.
+- [x] Usar `type` em vez de `interface` (§2.5.3).
+- [x] Rodar `npm run type-check` para garantir zero erros.
 
 Pronto quando: tipos importáveis; `type-check` limpo.
 
@@ -490,11 +490,11 @@ Referência: PRD §11.2, §2.5.3, §18 Fase 3.
 
 Arquivos: `frontend/src/api/assistenteApi.ts` (novo).
 
-- [ ] Exportar função tipada `export async function perguntarAoAssistente(req: PerguntaRequest):
+- [x] Exportar função tipada `export async function perguntarAoAssistente(req: PerguntaRequest):
       Promise<RespostaAssistente>`.
-- [ ] Usar `axios.post<RespostaAssistente>(...)` com interceptor de JWT já existente no projeto.
-- [ ] Tratar erros HTTP retornando tipo de erro tipado (não lançar `any`).
-- [ ] Validar chamada manual contra o backend rodando localmente.
+- [x] Usar `axios.post<RespostaAssistente>(...)` com interceptor de JWT já existente no projeto.
+- [x] Tratar erros HTTP retornando tipo de erro tipado (não lançar `any`).
+- [x] Validar chamada manual contra o backend rodando localmente.
 
 Pronto quando: chamada manual retorna resposta válida; gates limpos.
 
@@ -504,12 +504,12 @@ Referência: PRD §2.5.3 "Tipagem de API", §18 Fase 3.
 
 Arquivos: `frontend/src/pages/AssistentePage.tsx` (novo), `frontend/src/App.tsx`.
 
-- [ ] Criar o componente container (≤ 150 linhas) com estado de `pergunta`, `anonimizar`, `resposta`, `erro`,
+- [x] Criar o componente container (≤ 150 linhas) com estado de `pergunta`, `anonimizar`, `resposta`, `erro`,
       `carregando`.
-- [ ] Registrar a rota `/assistente` em `App.tsx`; aplicar guarda para redirecionar a login se não autenticado.
-- [ ] Montar o layout de §8.1 (Navbar + grid com sidebar histórico + área principal; sidebar colapsável mobile).
-- [ ] Integrar `perguntarAoAssistente` no submit.
-- [ ] Validar render para admin e viewer (inputs/controles diferentes vêm em TASK-23).
+- [x] Registrar a rota `/assistente` em `App.tsx`; aplicar guarda para redirecionar a login se não autenticado.
+- [x] Montar o layout de §8.1 (Navbar + grid com sidebar histórico + área principal; sidebar colapsável mobile).
+- [x] Integrar `perguntarAoAssistente` no submit.
+- [x] Validar render para admin e viewer (inputs/controles diferentes vêm em TASK-23).
 
 Pronto quando: `/assistente` renderiza para admin e viewer.
 
@@ -520,13 +520,13 @@ Referência: PRD §5, §8.1, §18 Fase 3.
 Arquivos: `frontend/src/components/assistente/PromptInput.tsx` (novo),
 `frontend/src/components/assistente/ErrorMessage.tsx` (novo).
 
-- [ ] `PromptInput.tsx` (≤ 80 linhas): textarea + botão "Enviar"; props tipadas `PromptInputProps` com
+- [x] `PromptInput.tsx` (≤ 80 linhas): textarea + botão "Enviar"; props tipadas `PromptInputProps` com
       `isAdmin`, `onSubmit`, `disabled`, `value`, `onChange`.
-- [ ] Se `!isAdmin`: `disabled=true`, placeholder `"Funcionalidade restrita a administradores"`,
+- [x] Se `!isAdmin`: `disabled=true`, placeholder `"Funcionalidade restrita a administradores"`,
       tooltip `"Contate seu gestor para obter acesso de administrador"`.
-- [ ] `ErrorMessage.tsx` (≤ 40 linhas): recebe `mensagem: string` e renderiza card semântico com foco visível.
-- [ ] Aplicar Tailwind dark mode (`dark:` prefix) e `aria-label` onde necessário.
-- [ ] Rodar gates de frontend.
+- [x] `ErrorMessage.tsx` (≤ 40 linhas): recebe `mensagem: string` e renderiza card semântico com foco visível.
+- [x] Aplicar Tailwind dark mode (`dark:` prefix) e `aria-label` onde necessário.
+- [x] Rodar gates de frontend.
 
 Pronto quando: viewer vê input desabilitado; admin envia; erros renderizam.
 
@@ -538,12 +538,12 @@ Arquivos: `ResultRenderer.tsx`, `DynamicTable.tsx`, `DynamicChart.tsx`,
 `charts/ChartBar.tsx`, `charts/ChartLine.tsx`, `charts/ChartPie.tsx`, `charts/ChartArea.tsx`,
 `charts/ChartScatter.tsx` (todos em `frontend/src/components/assistente/`).
 
-- [ ] `ResultRenderer.tsx` (≤ 80): recebe `visualizacoes: Visualizacao[]` e mapeia para `DynamicTable` ou
+- [x] `ResultRenderer.tsx` (≤ 80): recebe `visualizacoes: Visualizacao[]` e mapeia para `DynamicTable` ou
       `DynamicChart` conforme `tipo` (type narrowing via `if (v.tipo === 'tabela')`).
-- [ ] `DynamicTable.tsx` (≤ 120): renderiza cabeçalho + linhas; scroll horizontal em mobile.
-- [ ] `DynamicChart.tsx` (≤ 80): roteia por `subtipo` para o wrapper correspondente; usa `ResponsiveContainer`.
-- [ ] Criar os 5 wrappers em `charts/` (≤ 80 linhas cada) usando Recharts primitivos correspondentes.
-- [ ] Aplicar dark mode (tokens Tailwind) e cores consistentes.
+- [x] `DynamicTable.tsx` (≤ 120): renderiza cabeçalho + linhas; scroll horizontal em mobile.
+- [x] `DynamicChart.tsx` (≤ 80): roteia por `subtipo` para o wrapper correspondente; usa `ResponsiveContainer`.
+- [x] Criar os 5 wrappers em `charts/` (≤ 80 linhas cada) usando Recharts primitivos correspondentes.
+- [x] Aplicar dark mode (tokens Tailwind) e cores consistentes.
 - [ ] Validar end-to-end: perguntar `"Top 10 produtos mais vendidos"` e confirmar tabela de 10 linhas + gráfico
       de barras correto.
 
@@ -555,10 +555,10 @@ Referência: PRD §7.2, §7.3, §8.1, §18 Fase 3.
 
 Arquivos: `frontend/src/components/assistente/SQLViewer.tsx` (novo).
 
-- [ ] Componente (≤ 50 linhas) com prop `sql: string | null` e estado `expanded: boolean`.
-- [ ] Botão toggle com `aria-expanded` e label `"Ver SQL gerado"` / `"Ocultar SQL"`.
-- [ ] Renderizar SQL em `<pre><code>` com fonte monoespaçada e wrap apropriado.
-- [ ] Integrar ao `AssistentePage` acima da `ResultRenderer`.
+- [x] Componente (≤ 50 linhas) com prop `sql: string | null` e estado `expanded: boolean`.
+- [x] Botão toggle com `aria-expanded` e label `"Ver SQL gerado"` / `"Ocultar SQL"`.
+- [x] Renderizar SQL em `<pre><code>` com fonte monoespaçada e wrap apropriado.
+- [x] Integrar ao `AssistentePage` acima da `ResultRenderer`.
 
 Pronto quando: toggle expande/colapsa.
 
@@ -566,9 +566,9 @@ Referência: PRD §8.1, §18 Fase 3.
 
 ### 🚦 Gate Fase 3
 
-- [ ] `npm run lint`, `npm run type-check`, `npm run format:check` verdes.
-- [ ] Cada componente ≤ 150 linhas; zero `any` explícito; zero hex hardcoded em JSX.
-- [ ] Acessibilidade: labels em inputs, foco visível, HTML semântico.
+- [x] `npm run lint`, `npm run type-check`, `npm run format:check` verdes.
+- [x] Cada componente ≤ 150 linhas; zero `any` explícito; zero hex hardcoded em JSX.
+- [x] Acessibilidade: labels em inputs, foco visível, HTML semântico.
 
 ---
 

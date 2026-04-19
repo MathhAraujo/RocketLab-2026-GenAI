@@ -3,6 +3,7 @@ import { Layout } from './components/layout/Layout';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useAuth } from './hooks/useAuth';
+import { AssistentePage } from './pages/AssistentePage';
 import { CatalogoPage } from './pages/CatalogoPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -24,6 +25,7 @@ function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={<ProtectedLayout />}>
         <Route index element={<Navigate to="/catalogo" replace />} />
+        <Route path="assistente" element={<AssistentePage />} />
         <Route path="catalogo" element={<CatalogoPage />} />
         <Route path="produtos/novo" element={<ProdutoFormPage />} />
         <Route path="produtos/:id" element={<ProdutoDetalhePage />} />
