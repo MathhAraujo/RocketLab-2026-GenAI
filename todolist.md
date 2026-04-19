@@ -100,6 +100,9 @@ Critérios numéricos:
 - TASK-34 → §2.3, §9.2 (Docker)
 - TASK-35 → §14.3 (README)
 - TASK-36 / TASK-37 → §9.2, §16.1
+- TASK-38 → §8.1.1, §21.4, D21 (formatação de células numéricas)
+- TASK-39 → §8.1, D22 (sanitização de labels de gráfico)
+- TASK-40 → §8.1, D23 (paginação de tabelas longas)
 - Critérios de aceite finais → §16.1 e §16.2
 
 ---
@@ -763,6 +766,34 @@ Arquivos: `frontend/src/utils/formatters.ts` (novo), `frontend/src/components/as
 Pronto quando: formatação visual correta; gates de frontend limpos; CSV preserva valores originais.
 
 Referência: PRD §8.1.1, §21.4, D21.
+
+### TASK-39 — Sanitização de labels de gráfico em `formatters.ts`
+
+Arquivos: `frontend/src/utils/formatters.ts`, `frontend/src/components/assistente/charts/`.
+
+- [x] Implementar `sanitizeLabel(raw: string): string` em `formatters.ts`: remover parênteses e sufixos SQL, substituir `_` por espaço, aplicar title case, truncar em `MAX_LABEL_LENGTH = 20` chars com `…`.
+- [x] Aplicar `tickFormatter` com `sanitizeLabel` no `XAxis` de `ChartBar`, `ChartLine` e `ChartArea`.
+- [x] Aplicar `sanitizeLabel` no `formatter` do `Tooltip` (campo `name`) e na `Legend` do `ChartPie`.
+- [x] Aplicar `sanitizeLabel` nos cabeçalhos de `DynamicTable`.
+- [x] Rodar `npm run lint`, `npm run type-check`, `npm run format:check` — zero issues.
+
+Pronto quando: labels como `count(*)`, `valor_media` e `nome_produto` exibem texto legível; gates limpos.
+
+Referência: PRD §8.1, D22.
+
+### TASK-40 — Paginação de tabelas longas em `DynamicTable`
+
+Arquivos: `frontend/src/components/assistente/DynamicTable.tsx`.
+
+- [x] Declarar `TABLE_PAGE_SIZE: 10` como constante no topo do módulo.
+- [x] Adicionar estado `expanded: boolean` (default `false`); renderizar apenas `linhas.slice(0, TABLE_PAGE_SIZE)` quando `!expanded`.
+- [x] Exibir botão "Mostrar mais (N)" quando `!expanded && remaining > 0`; ao clicar, `setExpanded(true)`.
+- [x] Manter `buildCsv` usando todas as `linhas` (sem paginação — exporta dados completos).
+- [x] Rodar gates de frontend — zero issues.
+
+Pronto quando: tabelas com > 10 linhas mostram 10 + botão; gates limpos.
+
+Referência: PRD §8.1, D23.
 
 ### 🚦 Gate Final
 

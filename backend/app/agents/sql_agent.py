@@ -53,6 +53,10 @@ Valores válidos: "bar", "line", "pie", "area", "scatter", "none".
 Se o usuário solicitar um tipo específico, respeite-o.
 Se o usuário disser "apenas gráfico" ou "sem tabela", defina `forcar_tabela=false`.
 
+Em `grafico_config.eixo_x` e `grafico_config.eixo_y`, use EXATAMENTE os nomes das colunas
+do SELECT — incluindo aliases definidos com AS. Nunca invente nomes que não aparecem no SELECT.
+Exemplo: se o SELECT tem `COUNT(*) AS total_pedidos`, use `"total_pedidos"` em `eixo_y`.
+
 ### IDIOMA
 Português do Brasil. `explicacao_seca` com no máximo 2 frases.
 """.strip()

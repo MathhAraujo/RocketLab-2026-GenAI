@@ -367,6 +367,138 @@ def test_limit_forced_on_query_without_limit(
 
 
 # ---------------------------------------------------------------------------
+# Chart axis validation (regression for empty-chart bug)
+# ---------------------------------------------------------------------------
+
+
+def test_hallucinated_eixo_y_falls_back_to_first_numeric_column(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_insight_agent: InsightResult,
+) -> None:
+    """eixo_y that doesn't match any column is replaced by first numeric column."""
+    # Arrange — "contagem" does not exist in ['nome_produto', 'total_vendas']
+    wrong_y = SqlGenerationResult(
+        sql="SELECT nome_produto, total_vendas FROM produtos ORDER BY total_vendas DESC LIMIT 10",
+        explicacao_seca="Produtos com mais vendas.",
+        sugestao_grafico="bar",
+        grafico_config={"eixo_x": "nome_produto", "eixo_y": "contagem"},
+        forcar_tabela=True,
+        eh_off_topic=False,
+    )
+
+    async def _fake(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        return wrong_y
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    # Act
+    r = admin_client.post(_URL, json={"pergunta": "produtos mais vendidos"}, headers=headers)
+    # Assert
+    graficos = [v for v in r.json()["visualizacoes"] if v["tipo"] == "grafico"]
+    assert len(graficos) == 1, "Esperava exatamente um gráfico na resposta"
+    assert graficos[0]["eixo_y"] == "total_vendas", (
+        f"eixo_y deveria ser 'total_vendas', mas foi '{graficos[0]['eixo_y']}'"
+    )
+
+
+def test_grafico_config_none_picks_first_numeric_column_not_second_column(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_insight_agent: InsightResult,
+) -> None:
+    """When grafico_config is None and columns[1] is a string, eixo_y must be first numeric col."""
+    # Arrange — columns will be ['nome_produto', 'categoria_produto', 'total_vendas'];
+    # old fallback: columns[1] = 'categoria_produto' (string) → empty chart
+    no_config = SqlGenerationResult(
+        sql=(
+            "SELECT nome_produto, categoria_produto, total_vendas "
+            "FROM produtos ORDER BY total_vendas DESC LIMIT 10"
+        ),
+        explicacao_seca="Produtos com categorias.",
+        sugestao_grafico="bar",
+        grafico_config=None,
+        forcar_tabela=True,
+        eh_off_topic=False,
+    )
+
+    async def _fake(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        return no_config
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    # Act
+    r = admin_client.post(_URL, json={"pergunta": "categoria por produto"}, headers=headers)
+    # Assert
+    graficos = [v for v in r.json()["visualizacoes"] if v["tipo"] == "grafico"]
+    assert len(graficos) == 1
+    assert graficos[0]["eixo_y"] == "total_vendas", (
+        f"eixo_y deveria ser 'total_vendas', mas foi '{graficos[0]['eixo_y']}'"
+    )
+
+
+def test_no_numeric_column_produces_no_chart_and_fallback_table(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_insight_agent: InsightResult,
+) -> None:
+    """When all columns are strings and forcar_tabela=False, fallback table is added."""
+    # Arrange — no numeric column; forcar_tabela=False → old code renders empty chart with no table
+    all_strings = SqlGenerationResult(
+        sql="SELECT nome_produto, categoria_produto FROM produtos LIMIT 10",
+        explicacao_seca="Produtos e categorias.",
+        sugestao_grafico="bar",
+        grafico_config=None,
+        forcar_tabela=False,
+        eh_off_topic=False,
+    )
+
+    async def _fake(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        return all_strings
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    # Act
+    r = admin_client.post(_URL, json={"pergunta": "nomes e categorias"}, headers=headers)
+    vizs = r.json()["visualizacoes"]
+    # Assert
+    assert not any(v["tipo"] == "grafico" for v in vizs), "Não deve ter gráfico sem coluna numérica"
+    assert any(v["tipo"] == "tabela" for v in vizs), "Deve ter tabela de fallback"
+
+
+def test_hallucinated_eixo_x_falls_back_to_first_column(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_insight_agent: InsightResult,
+) -> None:
+    """eixo_x that doesn't match any column is replaced by columns[0]."""
+    wrong_x = SqlGenerationResult(
+        sql="SELECT nome_produto, total_vendas FROM produtos ORDER BY total_vendas DESC LIMIT 10",
+        explicacao_seca="Produtos.",
+        sugestao_grafico="bar",
+        grafico_config={"eixo_x": "produto", "eixo_y": "total_vendas"},
+        forcar_tabela=True,
+        eh_off_topic=False,
+    )
+
+    async def _fake(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        return wrong_x
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    r = admin_client.post(_URL, json={"pergunta": "produtos mais vendidos"}, headers=headers)
+    graficos = [v for v in r.json()["visualizacoes"] if v["tipo"] == "grafico"]
+    assert len(graficos) == 1
+    assert graficos[0]["eixo_x"] == "nome_produto", (
+        f"eixo_x deveria ser 'nome_produto', mas foi '{graficos[0]['eixo_x']}'"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
 

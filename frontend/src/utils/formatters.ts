@@ -9,7 +9,7 @@ const MONETARY_KEYWORDS: readonly string[] = [
   'ticket',
 ];
 const MAX_DECIMAL_PLACES = 4;
-const MAX_LABEL_LENGTH = 20;
+const MAX_LABEL_LENGTH = 12;
 
 export function formatCategoria(slug: string | null | undefined): string {
   if (!slug) return 'Sem Categoria';
@@ -43,7 +43,7 @@ export function formatRating(value: number | null | undefined): string {
   return value.toFixed(1);
 }
 
-export function sanitizeLabel(raw: string): string {
+export function sanitizeLabel(raw: string, maxLength: number = MAX_LABEL_LENGTH): string {
   const withoutParens = raw.replace(/\(.*$/, '');
   const withSpaces = withoutParens.replace(/_/g, ' ');
   const titleCase = withSpaces
@@ -51,8 +51,8 @@ export function sanitizeLabel(raw: string): string {
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
-  if (titleCase.length <= MAX_LABEL_LENGTH) return titleCase;
-  return `${titleCase.slice(0, MAX_LABEL_LENGTH)}…`;
+  if (titleCase.length <= maxLength) return titleCase;
+  return `${titleCase.slice(0, maxLength)}…`;
 }
 
 export function formatCell(columnName: string, value: unknown): string {

@@ -76,18 +76,42 @@ def _parse_chart_subtype(value: str) -> _ChartSubtype | None:
     return None
 
 
+def _primeira_coluna_numerica(columns: list[str], rows: list[list[Any]]) -> str | None:
+    """Return the first column whose first-row value is numeric, or None."""
+    if not rows:
+        return None
+    for idx, col in enumerate(columns):
+        if isinstance(rows[0][idx], int | float):
+            return col
+    return None
+
+
 def _construir_grafico(
     sql_result: SqlGenerationResult,
     columns: list[str],
     rows: list[list[Any]],
 ) -> GraficoVisualizacao | None:
-    """Return a GraficoVisualizacao if the agent suggested a valid chart type."""
+    """Return a GraficoVisualizacao if the agent suggested a valid chart type.
+
+    Validates ``eixo_x`` and ``eixo_y`` against the actual column names returned
+    by the query.  When the LLM hallucinates a column name (non-deterministic
+    behaviour observed in production), the service falls back to safe defaults
+    rather than producing an empty chart.
+    """
     subtype = _parse_chart_subtype(sql_result.sugestao_grafico)
     if subtype is None:
         return None
+
     config = sql_result.grafico_config
-    eixo_x = config.eixo_x if config and config.eixo_x else (columns[0] if columns else "")
-    eixo_y = config.eixo_y if config and config.eixo_y else (columns[1] if len(columns) > 1 else "")
+    cfg_x = config.eixo_x if config and config.eixo_x else ""
+    cfg_y = config.eixo_y if config and config.eixo_y else ""
+
+    # Validate against real column names; auto-detect on mismatch.
+    eixo_x = cfg_x if cfg_x in columns else (columns[0] if columns else "")
+    eixo_y = cfg_y if cfg_y in columns else _primeira_coluna_numerica(columns, rows)
+    if not eixo_y:
+        return None  # no numeric column → cannot build a meaningful chart
+
     titulo = sql_result.explicacao_seca[:80] or "Resultado"
     dados: list[dict[str, Any]] = [dict(zip(columns, row, strict=True)) for row in rows]
     return GraficoVisualizacao(
