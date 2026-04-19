@@ -1,4 +1,5 @@
 import type { TabelaVisualizacao } from '../../types/assistente';
+import { formatCell } from '../../utils/formatters';
 
 const FALLBACK_SLUG = 'tabela';
 
@@ -6,11 +7,6 @@ type DynamicTableProps = {
   visualizacao: TabelaVisualizacao;
   isAdmin: boolean;
 };
-
-function cellText(value: unknown): string {
-  if (value == null) return '—';
-  return String(value);
-}
 
 function escapeCsvCell(value: unknown): string {
   const text = value == null ? '' : String(value);
@@ -93,7 +89,7 @@ export function DynamicTable({ visualizacao, isAdmin }: DynamicTableProps): JSX.
                     key={`cell-${rowIdx}-${colIdx}`}
                     className="px-4 py-2 text-gray-700 dark:text-gray-300"
                   >
-                    {cellText(cell)}
+                    {formatCell(colunas[colIdx] ?? '', cell)}
                   </td>
                 ))}
               </tr>

@@ -430,6 +430,7 @@ Scripts em `package.json`:
 | D18 | Testes | Backend obrigatório (semi-TDD); frontend e LLM opcionais | Definição do stakeholder |
 | D19 | **Ferramental backend** | `ruff` + `mypy` (strict) — obrigatórios | Prioridade de qualidade |
 | D20 | **Ferramental frontend** | ESLint endurecido + Prettier — obrigatórios | Prioridade de qualidade |
+| D21 | Formatação de células numéricas | Display-only em `DynamicTable` (frontend) | UX — monetárias como BRL, floats com ≤ 4 casas; não altera contrato da API |
 
 ---
 
@@ -709,6 +710,12 @@ Botão "Limpar": localStorage.removeItem(...)
 | `DynamicChart.tsx` | Router para subtipos + export PNG | ≤ 80 |
 | `charts/Chart{Bar,Line,Pie,Area,Scatter}.tsx` | Wrappers Recharts | ≤ 80 cada |
 | `ErrorMessage.tsx` | Render de `erro_amigavel` | ≤ 40 |
+
+#### 8.1.1 Formatação de células numéricas
+
+Colunas cujo nome contenha `preco`, `frete`, `receita`, `valor` ou `brl` (case-insensitive) são formatadas como **BRL** (`R$ X.XXX,XX`, locale `pt-BR`). Demais floats com parte decimal não-inteira exibem **no máximo 4 casas decimais** (sem zeros à direita). Inteiros são exibidos sem casas decimais. Nulos exibem `—`.
+
+Implementada em `frontend/src/utils/formatters.ts` — função `formatCell(columnName: string, value: unknown): string`, consumida por `DynamicTable`. O CSV exporta os valores originais (sem formatação de exibição).
 
 **Hooks (`frontend/src/hooks/`):** `useLocalHistory.ts`
 **API (`frontend/src/api/`):** `assistenteApi.ts`
@@ -1713,6 +1720,34 @@ Não implementar sem renegociar escopo:
 - mypy: https://mypy.readthedocs.io
 - SQLite read-only URI: https://sqlite.org/uri.html
 - Google Python Style Guide (docstrings): https://google.github.io/styleguide/pyguide.html
+
+---
+
+## 21. Polimento — adições pós-Fase 5
+
+> Seção criada para registrar decisões e modificações feitas após a conclusão da Fase 5.
+
+### §21.1 — Autonomia do agente na seleção de visualização
+
+Remoção de exemplos e regras prescritivas de gráfico do system prompt do SQL Agent; o agente tem autonomia para escolher o tipo de visualização mais adequado com base nos dados.
+
+### §21.2 — Tratamento de erros de rate limit e quota do Gemini
+
+Novos códigos HTTP 429 (rate limit excedido) e 503 (quota esgotada) adicionados ao fluxo de erro do endpoint `/api/assistente/perguntar`.
+
+### §21.3 — Migração do ambiente de execução para Python 3.13.3
+
+Ambiente de desenvolvimento e produção migrado para Python 3.13.3, mantendo compatibilidade com a sintaxe 3.11+.
+
+### §21.4 — Formatação contextual de células numéricas
+
+Adicionada formatação de exibição em `DynamicTable` (ver §8.1.1 e D21):
+
+- Colunas monetárias (nome contém `preco`, `frete`, `receita`, `valor` ou `brl`) → BRL (`R$ X.XXX,XX`).
+- Floats não-inteiros → até 4 casas decimais, sem zeros à direita.
+- Inteiros → sem casas decimais.
+- Nulos → `—`.
+- Contrato da API e dados exportados no CSV permanecem com os valores originais.
 
 ---
 
