@@ -11,8 +11,12 @@ from typing import Final
 
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
+from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.providers.google import GoogleProvider
 
 from app.agents.schema_context import SCHEMA_BLOCK
+from app.config import settings
+from app.errors import GeminiNotConfiguredError
 from app.services.retry import RetryContext
 
 _SYSTEM_PROMPT: Final[str] = f"""
@@ -78,24 +82,41 @@ _RETRY_SUFFIX: Final[str] = (
 )
 
 
+class GraficoConfig(BaseModel):
+    """Axis configuration for a chart visualisation.
+
+    Using a typed model (instead of ``dict``) avoids the ``additionalProperties``
+    restriction that causes Gemini to drop the entire field.
+    """
+
+    eixo_x: str = ""
+    eixo_y: str = ""
+
+
 class SqlGenerationResult(BaseModel):
     """Structured output returned by the SQL generation agent."""
 
     sql: str = ""
     explicacao_seca: str = ""
     sugestao_grafico: str = Field(default="none")
-    grafico_config: dict[str, str] | None = None
+    grafico_config: GraficoConfig | None = None
     forcar_tabela: bool = True
     eh_off_topic: bool = False
     mensagem_off_topic: str | None = None
 
 
-_agent: Agent[None, SqlGenerationResult] = Agent(
-    "google-gla:gemini-2.5-flash",
-    output_type=SqlGenerationResult,
-    instructions=_SYSTEM_PROMPT,
-    defer_model_check=True,
-)
+def _make_agent() -> Agent[None, SqlGenerationResult]:
+    model: GoogleModel | str = (
+        GoogleModel("gemini-2.5-flash", provider=GoogleProvider(api_key=settings.GOOGLE_API_KEY))
+        if settings.GOOGLE_API_KEY
+        else "google-gla:gemini-2.5-flash"
+    )
+    return Agent(
+        model, output_type=SqlGenerationResult, instructions=_SYSTEM_PROMPT, defer_model_check=True
+    )
+
+
+_agent = _make_agent()
 
 
 def _build_prompt(pergunta: str, retry_context: RetryContext | None) -> str:
@@ -120,7 +141,12 @@ async def gerar_sql(
 
     Returns:
         A ``SqlGenerationResult`` with the SQL, explanation and chart hints.
+
+    Raises:
+        GeminiNotConfiguredError: If ``GOOGLE_API_KEY`` is not set.
     """
+    if not settings.GOOGLE_API_KEY:
+        raise GeminiNotConfiguredError("GOOGLE_API_KEY não configurada.")
     prompt = _build_prompt(pergunta, retry_context)
     result = await _agent.run(prompt)
     return result.output

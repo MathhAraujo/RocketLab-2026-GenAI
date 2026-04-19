@@ -83,11 +83,11 @@ def _construir_grafico(
 ) -> GraficoVisualizacao | None:
     """Return a GraficoVisualizacao if the agent suggested a valid chart type."""
     subtype = _parse_chart_subtype(sql_result.sugestao_grafico)
-    if subtype is None or not sql_result.grafico_config:
+    if subtype is None:
         return None
     config = sql_result.grafico_config
-    eixo_x = config.get("eixo_x", columns[0] if columns else "")
-    eixo_y = config.get("eixo_y", columns[1] if len(columns) > 1 else "")
+    eixo_x = config.eixo_x if config and config.eixo_x else (columns[0] if columns else "")
+    eixo_y = config.eixo_y if config and config.eixo_y else (columns[1] if len(columns) > 1 else "")
     titulo = sql_result.explicacao_seca[:80] or "Resultado"
     dados: list[dict[str, Any]] = [dict(zip(columns, row, strict=True)) for row in rows]
     return GraficoVisualizacao(
