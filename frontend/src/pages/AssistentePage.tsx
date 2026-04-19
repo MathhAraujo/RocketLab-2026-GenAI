@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useState } from 'react';
 import { perguntarAoAssistente } from '../api/assistenteApi';
 import AnonymizeToggle from '../components/assistente/AnonymizeToggle';
@@ -11,6 +12,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useLocalHistory } from '../hooks/useLocalHistory';
 import type { RespostaAssistente } from '../types/assistente';
 
+type ApiError = { mensagem: string; variant: 'error' | 'warning' };
+
 export function AssistentePage(): JSX.Element {
   const { user } = useAuth();
   const isAdmin = user?.is_admin ?? false;
@@ -19,7 +22,7 @@ export function AssistentePage(): JSX.Element {
   const [pergunta, setPergunta] = useState('');
   const [anonimizar, setAnonimizar] = useState(false);
   const [resposta, setResposta] = useState<RespostaAssistente | null>(null);
-  const [erroApi, setErroApi] = useState<string | null>(null);
+  const [erroApi, setErroApi] = useState<ApiError | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [sidebarAberta, setSidebarAberta] = useState(false);
 
@@ -32,8 +35,19 @@ export function AssistentePage(): JSX.Element {
       const resultado = await perguntarAoAssistente({ pergunta, anonimizar });
       if (!resultado.erro_amigavel) adicionar(pergunta);
       setResposta(resultado);
-    } catch {
-      setErroApi('Não foi possível conectar ao servidor. Tente novamente.');
+    } catch (err) {
+      if (axios.isAxiosError<{ detail?: string }>(err) && err.response) {
+        setErroApi({
+          mensagem:
+            err.response.data?.detail ?? 'Não foi possível conectar ao servidor. Tente novamente.',
+          variant: err.response.status === 429 ? 'warning' : 'error',
+        });
+      } else {
+        setErroApi({
+          mensagem: 'Não foi possível conectar ao servidor. Tente novamente.',
+          variant: 'error',
+        });
+      }
     } finally {
       setCarregando(false);
     }
@@ -105,7 +119,7 @@ export function AssistentePage(): JSX.Element {
 
         <SampleQuestions onPick={setPergunta} isAdmin={isAdmin} />
 
-        {erroApi && <ErrorMessage mensagem={erroApi} />}
+        {erroApi && <ErrorMessage mensagem={erroApi.mensagem} variant={erroApi.variant} />}
 
         {resposta?.erro_amigavel && (
           <ErrorMessage mensagem={resposta.erro_amigavel} variant="warning" />
