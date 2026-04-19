@@ -287,12 +287,12 @@ Referência: PRD §7.4, §15.3, §18 Fase 1.
 
 Arquivos: `backend/app/agents/__init__.py` (novo), `backend/app/agents/schema_context.py` (novo).
 
-- [ ] Criar `__init__.py` vazio no pacote `agents`.
-- [ ] Declarar `SCHEMA_BLOCK: Final[str]` com o schema literal de §4 (tabelas `consumidores`, `vendedores`,
+- [x] Criar `__init__.py` vazio no pacote `agents`.
+- [x] Declarar `SCHEMA_BLOCK: Final[str]` com o schema literal de §4 (tabelas `consumidores`, `vendedores`,
       `produtos`, `pedidos`, `itens_pedidos`, `avaliacoes_pedidos`, com anotação de que `usuarios` é bloqueada).
-- [ ] Incluir as observações de modelagem de §4.1 no bloco (receita total, por categoria, por estado,
+- [x] Incluir as observações de modelagem de §4.1 no bloco (receita total, por categoria, por estado,
       `entrega_no_prazo` string).
-- [ ] Adicionar module docstring explicando que o bloco é injetado no system prompt.
+- [x] Adicionar module docstring explicando que o bloco é injetado no system prompt.
 
 Pronto quando: import funciona; gates limpos.
 
@@ -302,15 +302,15 @@ Referência: PRD §4, §4.1, §12.1, §18 Fase 2.
 
 Arquivos: `backend/app/schemas/assistente.py` (novo).
 
-- [ ] Criar módulo com docstring e `from __future__ import annotations`.
-- [ ] Implementar `PerguntaRequest` com `model_config = ConfigDict(extra="forbid")`, `pergunta: str` com
+- [x] Criar módulo com docstring e `from __future__ import annotations`.
+- [x] Implementar `PerguntaRequest` com `model_config = ConfigDict(extra="forbid")`, `pergunta: str` com
       `Field(min_length=3, max_length=500)`, `anonimizar: bool = False`.
-- [ ] Implementar `TabelaVisualizacao` com `tipo: Literal["tabela"] = "tabela"`, `titulo`, `colunas`, `linhas`.
-- [ ] Implementar `GraficoVisualizacao` com `subtipo: Literal["bar", "line", "pie", "area", "scatter"]`,
+- [x] Implementar `TabelaVisualizacao` com `tipo: Literal["tabela"] = "tabela"`, `titulo`, `colunas`, `linhas`.
+- [x] Implementar `GraficoVisualizacao` com `subtipo: Literal["bar", "line", "pie", "area", "scatter"]`,
       `titulo`, `eixo_x`, `eixo_y`, `dados`.
-- [ ] Declarar `Visualizacao = TabelaVisualizacao | GraficoVisualizacao` como `TypeAlias`.
-- [ ] Implementar `MetadadosResposta` e `RespostaAssistente` exatamente como §11.2.
-- [ ] Validar cada model com `pydantic.TypeAdapter(...).validate_python({...})` em um teste rápido descartável.
+- [x] Declarar `Visualizacao = TabelaVisualizacao | GraficoVisualizacao` como `TypeAlias`.
+- [x] Implementar `MetadadosResposta` e `RespostaAssistente` exatamente como §11.2.
+- [x] Validar cada model com `pydantic.TypeAdapter(...).validate_python({...})` em um teste rápido descartável.
 
 Pronto quando: `pydantic.TypeAdapter` valida cada model; gates limpos.
 
@@ -320,15 +320,15 @@ Referência: PRD §11.2, §18 Fase 2.
 
 Arquivos: `backend/app/agents/sql_agent.py` (novo).
 
-- [ ] Consultar docs atuais de PydanticAI (https://ai.pydantic.dev) para API exata antes de codificar.
-- [ ] Definir `SqlGenerationResult` (Pydantic `BaseModel`) com campos `sql`, `explicacao_seca`,
+- [x] Consultar docs atuais de PydanticAI (https://ai.pydantic.dev) para API exata antes de codificar.
+- [x] Definir `SqlGenerationResult` (Pydantic `BaseModel`) com campos `sql`, `explicacao_seca`,
       `sugestao_grafico`, `grafico_config`, `forcar_tabela`, `eh_off_topic`, `mensagem_off_topic`.
-- [ ] Instanciar `Agent` PydanticAI com modelo `gemini-2.5-flash` via provider `google-gla`.
-- [ ] Injetar o system prompt literal de §12.1 com `{SCHEMA_BLOCK}` substituído por
+- [x] Instanciar `Agent` PydanticAI com modelo `gemini-2.5-flash` via provider `google-gla`.
+- [x] Injetar o system prompt literal de §12.1 com `{SCHEMA_BLOCK}` substituído por
       `schema_context.SCHEMA_BLOCK`.
-- [ ] Expor função pública tipada `async def gerar_sql(pergunta: str, retry_context: RetryContext | None = None)
+- [x] Expor função pública tipada `async def gerar_sql(pergunta: str, retry_context: RetryContext | None = None)
       -> SqlGenerationResult`.
-- [ ] Rodar smoke test manual: chamar a função com `"Top 10 produtos mais vendidos"` e verificar `sql` não-vazio
+- [x] Rodar smoke test manual: chamar a função com `"Top 10 produtos mais vendidos"` e verificar `sql` não-vazio
       e `sugestao_grafico="bar"`.
 
 Pronto quando: smoke test manual retorna `SqlGenerationResult` válido; gates limpos.
@@ -339,12 +339,12 @@ Referência: PRD §8.3, §12.1, §18 Fase 2.
 
 Arquivos: `backend/app/agents/insight_agent.py` (novo).
 
-- [ ] Definir `InsightResult(BaseModel)` com `explicacao_analitica: str`.
-- [ ] Instanciar `Agent` PydanticAI com `gemini-2.5-flash`.
-- [ ] Injetar o system prompt literal de §12.2 (regras anti-alucinação, máx 2–4 frases).
-- [ ] Expor `async def gerar_insight(pergunta: str, colunas: list[str], linhas_top100: list[list[Any]],
+- [x] Definir `InsightResult(BaseModel)` com `explicacao_analitica: str`.
+- [x] Instanciar `Agent` PydanticAI com `gemini-2.5-flash`.
+- [x] Injetar o system prompt literal de §12.2 (regras anti-alucinação, máx 2–4 frases).
+- [x] Expor `async def gerar_insight(pergunta: str, colunas: list[str], linhas_top100: list[list[Any]],
       explicacao_seca: str) -> InsightResult`.
-- [ ] Smoke test manual: chamar com dados fake e verificar texto coerente e sem valores inventados.
+- [x] Smoke test manual: chamar com dados fake e verificar texto coerente e sem valores inventados.
 
 Pronto quando: smoke test manual retorna texto coerente; gates limpos.
 
@@ -354,11 +354,11 @@ Referência: PRD §8.3, §12.2, §18 Fase 2.
 
 Arquivos: `backend/app/config.py`, `backend/.env.example`.
 
-- [ ] Adicionar campo `google_api_key: str | None = None` em `Settings(BaseSettings)`.
-- [ ] Manter factory `get_settings()` com `@lru_cache`.
-- [ ] Atualizar `backend/.env.example` com `GOOGLE_API_KEY=` e comentário explicando que sem ela o endpoint
+- [x] Adicionar campo `google_api_key: str | None = None` em `Settings(BaseSettings)`.
+- [x] Manter factory `get_settings()` com `@lru_cache`.
+- [x] Atualizar `backend/.env.example` com `GOOGLE_API_KEY=` e comentário explicando que sem ela o endpoint
       `/api/assistente/perguntar` retorna 503.
-- [ ] Subir o app com e sem a variável definida e validar que `GET /api/assistente/saude` reflete o status
+- [x] Subir o app com e sem a variável definida e validar que `GET /api/assistente/saude` reflete o status
       em `gemini_configurado` (após TASK-17/18).
 
 Pronto quando: app sobe com e sem a variável; health check reflete status.
@@ -369,13 +369,13 @@ Referência: PRD §2.3, §11.3, §18 Fase 2.
 
 Arquivos: `backend/app/errors.py` (novo), `backend/app/main.py`.
 
-- [ ] Criar exceções de domínio: `AgentFailureError`, `GeminiNotConfiguredError` (em `errors.py` ou co-localizadas
+- [x] Criar exceções de domínio: `AgentFailureError`, `GeminiNotConfiguredError` (em `errors.py` ou co-localizadas
       nos módulos apropriados); `QueryNotAllowedError` já existe em `sql_guardrail.py`.
-- [ ] Implementar `register_exception_handlers(app: FastAPI) -> None` que registra handlers convertendo
+- [x] Implementar `register_exception_handlers(app: FastAPI) -> None` que registra handlers convertendo
       `QueryNotAllowedError` → 400 `{"erro":"query_rejeitada","motivo":...}`, `AgentFailureError` → 500,
       `GeminiNotConfiguredError` → 503 com detail literal de §11.1.
-- [ ] Logar detalhes técnicos via `logger.exception(...)` em cada handler; resposta JSON em pt-BR.
-- [ ] Chamar `register_exception_handlers(app)` em `main.py` (preparar hook mesmo sem router registrado ainda).
+- [x] Logar detalhes técnicos via `logger.exception(...)` em cada handler; resposta JSON em pt-BR.
+- [x] Chamar `register_exception_handlers(app)` em `main.py` (preparar hook mesmo sem router registrado ainda).
 
 Pronto quando: handler converte exceções em JSON correto.
 
@@ -385,14 +385,14 @@ Referência: PRD §2.5.2 "Exceções e erros", §11.1, §18 Fase 2.
 
 Arquivos: `backend/tests/test_assistente_endpoint.py` (novo), `backend/tests/conftest.py`.
 
-- [ ] Adicionar em `conftest.py` as fixtures de §15.4: `test_db` (SQLite em memória com seed), `admin_client`,
+- [x] Adicionar em `conftest.py` as fixtures de §15.4: `test_db` (SQLite em memória com seed), `admin_client`,
       `viewer_client`, `mock_sql_agent` (parametrizável), `mock_insight_agent` (canned).
-- [ ] Criar `test_assistente_endpoint.py` com os 18 testes de §15.3 (auth 401/403, shape do contrato, tabela
+- [x] Criar `test_assistente_endpoint.py` com os 18 testes de §15.3 (auth 401/403, shape do contrato, tabela
       por padrão, gráfico quando sugerido/omitido em unitário, modos de tabela/gráfico forçados, anonimização
       on/off, off-topic, guardrail 400, request inválido 422, `GOOGLE_API_KEY` ausente 503, retry recovery,
       fallback amigável, `LIMIT` forçado).
-- [ ] Garantir que `mock_sql_agent` substitui `agent.run` via `monkeypatch`, sem chamar Gemini real.
-- [ ] Rodar pytest e confirmar estado vermelho (a implementação vem na TASK-16/17/18).
+- [x] Garantir que `mock_sql_agent` substitui `agent.run` via `monkeypatch`, sem chamar Gemini real.
+- [x] Rodar pytest e confirmar estado vermelho (a implementação vem na TASK-16/17/18).
 
 Pronto quando: testes coletam e falham.
 
@@ -402,16 +402,16 @@ Referência: PRD §15.3 (`tests/test_assistente_endpoint.py`), §15.4, §18 Fase
 
 Arquivos: `backend/app/services/assistente_service.py` (novo).
 
-- [ ] Criar módulo com docstring e imports; **zero** import de `fastapi` (sem `HTTPException`, sem `Depends`).
-- [ ] Implementar `async def responder_pergunta(pergunta: str, anonimizar: bool, sql_agent, insight_agent,
+- [x] Criar módulo com docstring e imports; **zero** import de `fastapi` (sem `HTTPException`, sem `Depends`).
+- [x] Implementar `async def responder_pergunta(pergunta: str, anonimizar: bool, sql_agent, insight_agent,
       engine: Engine) -> RespostaAssistente` conforme fluxo de §7.1.
-- [ ] Encadear: gerar SQL → `validate_and_harden` → executar na engine read-only (timeout 10s) →
+- [x] Encadear: gerar SQL → `validate_and_harden` → executar na engine read-only (timeout 10s) →
       `anonymize_rows` → aplicar regras de composição de §7.2 → decidir two-pass (`3 ≤ linhas ≤ 100` e
       coluna numérica) e chamar `insight_agent` quando aplicável.
-- [ ] Integrar `run_with_retry` (máx 3 tentativas) injetando `RetryContext` com SQL e erro anteriores.
-- [ ] Em caso de off-topic ou falha total, retornar `RespostaAssistente` com `erro_amigavel` preenchido
+- [x] Integrar `run_with_retry` (máx 3 tentativas) injetando `RetryContext` com SQL e erro anteriores.
+- [x] Em caso de off-topic ou falha total, retornar `RespostaAssistente` com `erro_amigavel` preenchido
       (status 200 conforme §7.4).
-- [ ] Aplicar heurística de gráfico de §7.3 em função privada dedicada.
+- [x] Aplicar heurística de gráfico de §7.3 em função privada dedicada.
 
 Pronto quando: lógica de orquestração completa e usada pelo router.
 
@@ -421,15 +421,15 @@ Referência: PRD §7.1, §7.2, §7.3, §7.4, §7.5, §8.2, §18 Fase 2.
 
 Arquivos: `backend/app/routers/assistente.py` (novo).
 
-- [ ] Criar `APIRouter(prefix="/api/assistente", tags=["assistente"])`.
-- [ ] Endpoint `POST /perguntar` tipado `async def perguntar(req: PerguntaRequest, usuario=Depends(get_admin_user),
+- [x] Criar `APIRouter(prefix="/api/assistente", tags=["assistente"])`.
+- [x] Endpoint `POST /perguntar` tipado `async def perguntar(req: PerguntaRequest, usuario=Depends(get_admin_user),
       service=Depends(get_assistente_service), ...) -> RespostaAssistente` — sem lógica de negócio, apenas DI +
       delegação + retorno.
-- [ ] Endpoint `GET /saude` público retornando `{"status": "ok", "gemini_configurado": bool, "banco_acessivel": bool}`.
-- [ ] Injetar `sql_agent`, `insight_agent`, `engine` via `Depends` isoladas em `app/dependencies.py` ou no
+- [x] Endpoint `GET /saude` público retornando `{"status": "ok", "gemini_configurado": bool, "banco_acessivel": bool}`.
+- [x] Injetar `sql_agent`, `insight_agent`, `engine` via `Depends` isoladas em `app/dependencies.py` ou no
       próprio router (factory com `@lru_cache`).
-- [ ] Guardar que viewer recebe 403 e não autenticado recebe 401 via `get_admin_user`.
-- [ ] Rodar gates; confirmar todos os testes da TASK-15 passam.
+- [x] Guardar que viewer recebe 403 e não autenticado recebe 401 via `get_admin_user`.
+- [x] Rodar gates; confirmar todos os testes da TASK-15 passam.
 
 Pronto quando: todos os testes de TASK-15 passam; gates limpos.
 
@@ -439,9 +439,9 @@ Referência: PRD §8.2, §11.1, §15.3, §18 Fase 2.
 
 Arquivos: `backend/app/main.py`.
 
-- [ ] `app.include_router(assistente.router)` no bootstrapping.
-- [ ] Confirmar que `register_exception_handlers(app)` de TASK-14 continua ativo.
-- [ ] Subir `uvicorn` manualmente e chamar `GET /api/assistente/saude`; validar resposta 200.
+- [x] `app.include_router(assistente.router)` no bootstrapping.
+- [x] Confirmar que `register_exception_handlers(app)` de TASK-14 continua ativo.
+- [x] Subir `uvicorn` manualmente e chamar `GET /api/assistente/saude`; validar resposta 200.
 
 Pronto quando: `GET /api/assistente/saude` → 200.
 
@@ -449,10 +449,10 @@ Referência: PRD §11.3, §14.3, §18 Fase 2.
 
 ### 🚦 Gate Fase 2
 
-- [ ] Gates completos verdes (backend).
-- [ ] Revisão manual de separação de camadas: nenhum SQL cru no router, nenhum `HTTPException` em service,
+- [x] Gates completos verdes (backend).
+- [x] Revisão manual de separação de camadas: nenhum SQL cru no router, nenhum `HTTPException` em service,
       nenhum model SQLAlchemy serializado como response.
-- [ ] Cobertura ≥ 80% em `routers/assistente.py`, `services/assistente_service.py`, `services/retry.py`.
+- [x] Cobertura ≥ 80% em `routers/assistente.py`, `services/assistente_service.py`, `services/retry.py`.
 
 ---
 

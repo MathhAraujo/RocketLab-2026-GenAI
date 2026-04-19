@@ -10,7 +10,7 @@ import pytest
 
 from app.services.retry import MAX_ATTEMPTS, RetryContext, run_with_retry
 
-pytestmark = pytest.mark.asyncio
+pytestmark = pytest.mark.anyio
 
 
 # ---------------------------------------------------------------------------

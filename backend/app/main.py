@@ -12,7 +12,8 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 
 from app.config import settings
-from app.routers import auth, produtos
+from app.errors import register_exception_handlers
+from app.routers import assistente, auth, produtos
 
 
 def custom_key_builder(
@@ -52,6 +53,9 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(produtos.router, prefix="/api")
+app.include_router(assistente.router, prefix="/api")
+
+register_exception_handlers(app)
 
 
 @app.get(
