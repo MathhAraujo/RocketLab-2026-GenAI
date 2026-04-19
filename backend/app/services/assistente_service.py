@@ -16,7 +16,7 @@ from sqlalchemy import Engine, text
 import app.agents.insight_agent as _insight_mod
 import app.agents.sql_agent as _sql_mod
 from app.agents.sql_agent import SqlGenerationResult
-from app.errors import GeminiNotConfiguredError
+from app.errors import GeminiNotConfiguredError, GeminiQuotaExhaustedError, GeminiRateLimitError
 from app.schemas.assistente import (
     GraficoVisualizacao,
     MetadadosResposta,
@@ -231,7 +231,7 @@ async def responder_pergunta(
             columns, rows = await _executar_consulta(hardened, engine)
             rows = anonymize_rows(columns, rows, enabled=anonimizar)
             return await _compor_resposta(pergunta, sql_result, columns, rows, anonimizar, attempt)
-        except GeminiNotConfiguredError:
+        except (GeminiNotConfiguredError, GeminiRateLimitError, GeminiQuotaExhaustedError):
             raise
         except Exception as exc:
             logger.warning("Tentativa %d/%d falhou: %s", attempt, MAX_ATTEMPTS, exc)

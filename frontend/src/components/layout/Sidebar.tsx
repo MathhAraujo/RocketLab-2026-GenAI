@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { LayoutDashboard, LayoutGrid, PackagePlus, Bot, Sun, Moon, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, LayoutGrid, Bot, Sun, Moon, LogOut, X } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -13,7 +13,6 @@ interface SidebarProps {
 
 const navItems = [
   { to: '/catalogo', icon: LayoutGrid, label: 'Catálogo', adminOnly: false },
-  { to: '/produtos/novo', icon: PackagePlus, label: 'Novo Produto', adminOnly: true },
   { to: '/assistente', icon: Bot, label: 'Assistente', adminOnly: false },
 ];
 
@@ -65,31 +64,6 @@ export function Sidebar({
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 p-2 flex-1 overflow-hidden">
-        {/* Dashboard — disabled placeholder */}
-        <div
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-not-allowed opacity-40"
-          title={showLabels ? undefined : 'Dashboard (Em breve)'}
-        >
-          <LayoutDashboard
-            size={18}
-            className="shrink-0"
-            style={{ color: 'var(--color-text-secondary)' }}
-          />
-          {showLabels && (
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className="text-sm font-medium truncate"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                Dashboard
-              </span>
-              <span className="rounded px-1 py-0.5 text-[10px] font-medium bg-zinc-700 text-zinc-400 shrink-0">
-                Em breve
-              </span>
-            </div>
-          )}
-        </div>
-
         {navItems
           .filter((item) => !item.adminOnly || user?.is_admin)
           .map(({ to, icon: Icon, label }) => (

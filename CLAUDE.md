@@ -7,8 +7,8 @@ Guia de trabalho do Claude Code neste repositório. Leia antes de qualquer ediç
 Aplicação fullstack de Gerenciamento de E-Commerce (Rocket Lab 2026). Atualmente implementando a feature `/assistente` — dashboard com agente Text-to-SQL (PydanticAI + Gemini 2.5 Flash) para consultas em linguagem natural sobre o banco.
 
 **Documentos de referência (leia na ordem):**
-1. `docs/PRD-assistente.md` — especificação completa da feature em andamento
-2. `docs/todo-list.md` — backlog com checkboxes; fonte de verdade do que está pronto e o que falta
+1. `PRD-assistente.md` — especificação completa da feature em andamento
+2. `todo-list.md` — backlog com checkboxes; fonte de verdade do que está pronto e o que falta
 
 ## Prioridade máxima: legibilidade e boas práticas
 
@@ -16,7 +16,7 @@ Qualidade de código vem antes de velocidade. Um módulo funcional mas ilegível
 
 ## Fluxo de trabalho por tarefa
 
-1. Ler `docs/todo-list.md` e identificar a próxima tarefa desmarcada
+1. Ler `todo-list.md` e identificar a próxima tarefa desmarcada
 2. Reler a seção do PRD referenciada pela tarefa (não reler o PRD inteiro)
 3. Para tarefas de código com testes (Fase 1 e 2): escrever testes primeiro, confirmar que falham, depois implementar
 4. Executar os gates de qualidade abaixo

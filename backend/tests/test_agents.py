@@ -9,13 +9,14 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from pydantic_ai.exceptions import ModelHTTPError
 
 import app.agents.insight_agent as insight_mod
 import app.agents.sql_agent as sql_mod
 from app.agents.insight_agent import InsightResult
 from app.agents.sql_agent import SqlGenerationResult
 from app.agents.sql_agent import _build_prompt as sql_build_prompt
-from app.errors import GeminiNotConfiguredError
+from app.errors import GeminiNotConfiguredError, GeminiQuotaExhaustedError, GeminiRateLimitError
 from app.services.retry import RetryContext
 
 pytestmark = pytest.mark.anyio
@@ -118,6 +119,28 @@ async def test_gerar_insight_returns_analytic_result(monkeypatch: pytest.MonkeyP
     )
 
     assert "Produto A" in result.explicacao_analitica
+
+
+async def test_gerar_sql_raises_rate_limit_on_http_429(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Arrange
+    exc = ModelHTTPError(status_code=429, model_name="gemini-2.5-flash")
+    monkeypatch.setattr(sql_mod, "_agent", MagicMock(run=AsyncMock(side_effect=exc)))
+    monkeypatch.setattr(sql_mod.settings, "GOOGLE_API_KEY", "fake-key")
+    # Act / Assert
+    with pytest.raises(GeminiRateLimitError):
+        await sql_mod.gerar_sql("Top 10 produtos")
+
+
+async def test_gerar_sql_raises_quota_exhausted_on_429_with_quota_body(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Arrange
+    exc = ModelHTTPError(status_code=429, model_name="gemini-2.5-flash", body="quota exceeded")
+    monkeypatch.setattr(sql_mod, "_agent", MagicMock(run=AsyncMock(side_effect=exc)))
+    monkeypatch.setattr(sql_mod.settings, "GOOGLE_API_KEY", "fake-key")
+    # Act / Assert
+    with pytest.raises(GeminiQuotaExhaustedError):
+        await sql_mod.gerar_sql("Top 10 produtos")
 
 
 async def test_gerar_insight_prompt_includes_question_and_columns(

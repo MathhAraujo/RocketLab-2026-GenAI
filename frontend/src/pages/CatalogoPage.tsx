@@ -1,19 +1,70 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCategorias } from '../api/produtos';
+import { createProduto, getCategorias } from '../api/produtos';
 import { ProdutoCard } from '../components/produtos/ProdutoCard';
 import { ProdutoFilters } from '../components/produtos/ProdutoFilters';
+import { ProdutoForm } from '../components/produtos/ProdutoForm';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SkeletonCard } from '../components/ui/Loading';
+import { Modal } from '../components/ui/Modal';
 import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { usePagination } from '../hooks/usePagination';
 import { useProdutos } from '../hooks/useProdutos';
+import type { ProdutoCreate, ProdutoUpdate } from '../types/produto';
+
+interface NovoProdutoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function NovoProdutoModal({ isOpen, onClose }: NovoProdutoModalProps): JSX.Element {
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    if (isOpen) setFormError('');
+  }, [isOpen]);
+
+  const handleSubmit = async (data: ProdutoCreate | ProdutoUpdate) => {
+    setIsSubmitting(true);
+    setFormError('');
+    try {
+      const created = await createProduto(data as ProdutoCreate);
+      navigate(`/produtos/${created.id_produto}`);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+        'Erro ao criar produto';
+      setFormError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Novo Produto">
+      {formError && (
+        <p
+          className="mb-4 rounded-lg px-4 py-2 text-sm"
+          style={{
+            background: 'rgba(244,63,94,0.1)',
+            border: '1px solid rgba(244,63,94,0.3)',
+            color: '#f43f5e',
+          }}
+        >
+          {formError}
+        </p>
+      )}
+      <ProdutoForm onSubmit={handleSubmit} onCancel={onClose} isLoading={isSubmitting} />
+    </Modal>
+  );
+}
 
 export function CatalogoPage(): JSX.Element {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { page, perPage, goToPage, reset } = usePagination();
 
@@ -22,6 +73,7 @@ export function CatalogoPage(): JSX.Element {
   const [sortBy, setSortBy] = useState('vendas');
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const [categorias, setCategorias] = useState<string[]>([]);
+  const [showForm, setShowForm] = useState(false);
 
   const { data, isLoading, error } = useProdutos({
     page,
@@ -98,7 +150,7 @@ export function CatalogoPage(): JSX.Element {
           )}
         </div>
         {user?.is_admin && (
-          <Button onClick={() => navigate('/produtos/novo')}>
+          <Button onClick={() => setShowForm(true)}>
             <Plus size={16} />
             Novo Produto
           </Button>
@@ -126,6 +178,8 @@ export function CatalogoPage(): JSX.Element {
       {error && <p className="text-center text-sm text-red-400">{error}</p>}
 
       {renderContent()}
+
+      {user?.is_admin && <NovoProdutoModal isOpen={showForm} onClose={() => setShowForm(false)} />}
     </div>
   );
 }

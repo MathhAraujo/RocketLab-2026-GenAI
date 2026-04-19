@@ -257,6 +257,38 @@ def test_malformed_request_returns_422(
     assert r.status_code == 422
 
 
+def test_rate_limit_returns_429(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.errors import GeminiRateLimitError
+
+    async def _fake(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        raise GeminiRateLimitError("rate limit simulado")
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    r = admin_client.post(_URL, json={"pergunta": _PERGUNTA}, headers=headers)
+    assert r.status_code == 429
+
+
+def test_quota_exhausted_returns_503(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.errors import GeminiQuotaExhaustedError
+
+    async def _fake(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        raise GeminiQuotaExhaustedError("quota esgotada simulada")
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    r = admin_client.post(_URL, json={"pergunta": _PERGUNTA}, headers=headers)
+    assert r.status_code == 503
+
+
 def test_missing_google_api_key_returns_503(
     admin_client: TestClient,
     admin_token: str,

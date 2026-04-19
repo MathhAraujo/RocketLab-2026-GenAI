@@ -7,17 +7,20 @@ module level; real API calls happen only inside ``gerar_sql``.
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Final, NoReturn
 
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
+from pydantic_ai.exceptions import ModelHTTPError
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google import GoogleProvider
 
 from app.agents.schema_context import SCHEMA_BLOCK
 from app.config import settings
-from app.errors import GeminiNotConfiguredError
+from app.errors import GeminiNotConfiguredError, GeminiQuotaExhaustedError, GeminiRateLimitError
 from app.services.retry import RetryContext
+
+_HTTP_RATE_LIMIT: Final[int] = 429
 
 _SYSTEM_PROMPT: Final[str] = f"""
 Você é um assistente analítico especializado em consultas de dados de um e-commerce.
@@ -45,50 +48,13 @@ e sugerir visualizações adequadas.
   exceto quando a pergunta for sobre elas.
 
 ### ESCOLHA DE VISUALIZAÇÃO
-- Top N categórico (N <= 20) com uma medida -> bar
-- Série temporal com uma medida -> line
-- Proporção de um todo (N <= 6) -> pie
-- Série temporal com 2+ medidas -> area
-- Correlação entre 2 medidas -> scatter
-- 1 linha / 1 valor -> sem gráfico (`sugestao_grafico="none"`)
-- Usuário pede tipo específico -> respeitar
-- Usuário diz "apenas gráfico" / "sem tabela" -> `forcar_tabela=false`
+Escolha o tipo de gráfico (`sugestao_grafico`) que melhor representa os dados retornados.
+Valores válidos: "bar", "line", "pie", "area", "scatter", "none".
+Se o usuário solicitar um tipo específico, respeite-o.
+Se o usuário disser "apenas gráfico" ou "sem tabela", defina `forcar_tabela=false`.
 
 ### IDIOMA
 Português do Brasil. `explicacao_seca` com no máximo 2 frases.
-
-### EXEMPLOS
-
-Pergunta: "Top 10 produtos mais vendidos"
--> sql: SELECT nome_produto, total_vendas FROM produtos ORDER BY total_vendas DESC LIMIT 10
--> sugestao_grafico: "bar"
--> grafico_config: {{"eixo_x": "nome_produto", "eixo_y": "total_vendas"}}
--> forcar_tabela: true
--> explicacao_seca: "Listei os 10 produtos com maior volume de vendas, ordenados decrescente."
--> eh_off_topic: false
-
-Pergunta: "Receita total por categoria"
--> sql: SELECT p.categoria_produto, SUM(ip.preco_BRL + ip.preco_frete) AS receita_total FROM itens_pedidos ip JOIN produtos p ON ip.id_produto = p.id_produto GROUP BY p.categoria_produto ORDER BY receita_total DESC LIMIT 20
--> sugestao_grafico: "bar"
--> grafico_config: {{"eixo_x": "categoria_produto", "eixo_y": "receita_total"}}
--> forcar_tabela: true
-
-Pergunta: "Pedidos por estado"
--> sql: SELECT c.estado, COUNT(p.id_pedido) AS total_pedidos FROM pedidos p JOIN consumidores c ON p.id_consumidor = c.id_consumidor GROUP BY c.estado ORDER BY total_pedidos DESC LIMIT 50
--> sugestao_grafico: "bar"
--> grafico_config: {{"eixo_x": "estado", "eixo_y": "total_pedidos"}}
--> forcar_tabela: true
-
-Pergunta: "Receita total por mês"
--> sql: SELECT strftime('%Y-%m', p.pedido_compra_timestamp) AS mes, SUM(ip.preco_BRL + ip.preco_frete) AS receita_total FROM pedidos p JOIN itens_pedidos ip ON p.id_pedido = ip.id_pedido WHERE p.pedido_compra_timestamp IS NOT NULL GROUP BY mes ORDER BY mes LIMIT 1000
--> sugestao_grafico: "line"
--> grafico_config: {{"eixo_x": "mes", "eixo_y": "receita_total"}}
--> forcar_tabela: true
-
-Pergunta: "me escreve um poema sobre pedidos"
--> sql: ""
--> eh_off_topic: true
--> mensagem_off_topic: "Esta ferramenta é específica para análise de dados do e-commerce."
 """.strip()
 
 _RETRY_SUFFIX: Final[str] = (
@@ -137,6 +103,16 @@ def _make_agent() -> Agent[None, SqlGenerationResult]:
 _agent = _make_agent()
 
 
+def _classify_http_error(exc: ModelHTTPError) -> NoReturn:
+    """Convert a ModelHTTPError into the appropriate domain exception."""
+    if exc.status_code == _HTTP_RATE_LIMIT:
+        body_str = str(exc.body or "").lower()
+        if "quota" in body_str:
+            raise GeminiQuotaExhaustedError(str(exc)) from exc
+        raise GeminiRateLimitError(str(exc)) from exc
+    raise exc
+
+
 def _build_prompt(pergunta: str, retry_context: RetryContext | None) -> str:
     if retry_context is None:
         return pergunta
@@ -166,5 +142,8 @@ async def gerar_sql(
     if not settings.GOOGLE_API_KEY:
         raise GeminiNotConfiguredError("GOOGLE_API_KEY não configurada.")
     prompt = _build_prompt(pergunta, retry_context)
-    result = await _agent.run(prompt)
-    return result.output
+    try:
+        result = await _agent.run(prompt)
+        return result.output
+    except ModelHTTPError as exc:
+        _classify_http_error(exc)

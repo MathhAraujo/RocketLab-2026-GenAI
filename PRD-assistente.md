@@ -2,8 +2,8 @@
 
 > **Projeto:** RocketLab-2026-GenAI
 > **Feature:** Dashboard com agente Text-to-SQL para análise de dados em linguagem natural
-> **Versão do documento:** 1.1
-> **Data:** 2026-04-18
+> **Versão do documento:** 1.2
+> **Data:** 2026-04-19
 > **Prazo de entrega:** 2026-04-22 18:00
 > **Formato:** PRD híbrido (produto + técnico), otimizado para consumo por LLM e geração de backlog de implementação via Claude Code.
 
@@ -13,6 +13,12 @@
 > - Exemplos de código do PRD refinados com docstrings, type hints modernos e nomes consistentes
 > - Gates de qualidade adicionados em §9 (NFR), §16 (critérios de aceite) e ao fim de cada fase do §18
 > - TASK-00 de configuração de tooling introduzida antes de qualquer tarefa de feature
+>
+> **Changelog v1.2:**
+> - Nova §21 (Polimento) introduzida para registrar adições e modificações pós-Fase 5
+> - §21.1: autonomia do agente na seleção de visualização — remoção de exemplos e regras prescritivas do system prompt
+> - §21.2: tratamento de erros de rate limit e quota do Gemini — novos códigos HTTP 429 e 503 complementares
+> - §21.3: migração do ambiente de execução para Python 3.13.13
 
 ---
 
@@ -1710,4 +1716,4 @@ Não implementar sem renegociar escopo:
 
 ---
 
-**Fim do PRD v1.1.**
+**Fim do PRD v1.2.**

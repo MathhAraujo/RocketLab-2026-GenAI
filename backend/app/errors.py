@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 
 _MSG_GEMINI_NOT_CONFIGURED = "Serviço de IA não configurado. Contate o administrador."
 _MSG_AGENT_FAILURE = "Falha interna no agente de análise."
+_MSG_RATE_LIMIT = "Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente."
+_MSG_QUOTA_EXHAUSTED = (
+    "Limite diário de requisições da IA atingido. "
+    "O serviço será retomado amanhã. Tente novamente mais tarde."
+)
 
 
 class GeminiNotConfiguredError(RuntimeError):
@@ -26,6 +31,14 @@ class GeminiNotConfiguredError(RuntimeError):
 
 class AgentFailureError(RuntimeError):
     """Raised when all retry attempts for the AI agent are exhausted."""
+
+
+class GeminiRateLimitError(RuntimeError):
+    """Raised when the Gemini API returns a per-minute rate-limit response (HTTP 429)."""
+
+
+class GeminiQuotaExhaustedError(RuntimeError):
+    """Raised when the Gemini API daily quota is exhausted."""
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -60,3 +73,15 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=500,
             content={"detail": _MSG_AGENT_FAILURE},
         )
+
+    @app.exception_handler(GeminiRateLimitError)
+    async def handle_rate_limit(request: Request, exc: GeminiRateLimitError) -> JSONResponse:
+        logger.warning("Gemini rate limit atingido: %s", exc)
+        return JSONResponse(status_code=429, content={"detail": _MSG_RATE_LIMIT})
+
+    @app.exception_handler(GeminiQuotaExhaustedError)
+    async def handle_quota_exhausted(
+        request: Request, exc: GeminiQuotaExhaustedError
+    ) -> JSONResponse:
+        logger.error("Gemini quota diária esgotada: %s", exc)
+        return JSONResponse(status_code=503, content={"detail": _MSG_QUOTA_EXHAUSTED})

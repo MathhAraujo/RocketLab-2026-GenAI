@@ -10,6 +10,7 @@ services:
       DATABASE_URL: sqlite:////data/database.db
       JWT_SECRET: c31adb21e2a74438d044479ea5d5b1a809964af1b17981dae2f55cfb67126a06
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      PYTHONUNBUFFERED: "1"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
       interval: 5s

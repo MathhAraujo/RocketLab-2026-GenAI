@@ -3,14 +3,10 @@ import { getProdutos, type ProdutosParams } from '../api/produtos';
 import type { PaginatedResponse } from '../types/pagination';
 import type { ProdutoListItem } from '../types/produto';
 
-export function useProdutos({
-  page,
-  per_page,
-  search,
-  categoria,
-  sort_by,
-  order,
-}: ProdutosParams): {
+export function useProdutos(
+  { page, per_page, search, categoria, sort_by, order }: ProdutosParams,
+  refreshKey = 0,
+): {
   data: PaginatedResponse<ProdutoListItem> | null;
   isLoading: boolean;
   error: string | null;
@@ -41,7 +37,7 @@ export function useProdutos({
     return () => {
       cancelled = true;
     };
-  }, [page, per_page, search, categoria, sort_by, order]);
+  }, [page, per_page, search, categoria, sort_by, order, refreshKey]);
 
   return { data, isLoading, error };
 }
