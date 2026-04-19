@@ -197,6 +197,7 @@ async def atualizar_produto(
 @router.delete(
     "/{id_produto}",
     status_code=204,
+    response_model=None,
     summary="Deletar Produto",
     description="Deleta um produto de forma definitiva.",
 )

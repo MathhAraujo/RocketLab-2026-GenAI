@@ -129,15 +129,15 @@ Referência: PRD §2.5, §2.6.1, §18 Fase 0.
 Arquivos: `frontend/.prettierrc` (novo), `frontend/package.json`, `frontend/.eslintrc.*`, `frontend/tsconfig.json`,
 `README.md`.
 
-- [ ] Instalar `prettier` e `eslint-plugin-jsx-a11y` como devDependencies via `npm install -D`.
-- [ ] Criar `frontend/.prettierrc` com o JSON literal de §2.6.2.
-- [ ] Endurecer `.eslintrc.*`: `@typescript-eslint/no-explicit-any: "error"`,
+- [x] Instalar `prettier` e `eslint-plugin-jsx-a11y` como devDependencies via `npm install -D`.
+- [x] Criar `frontend/.prettierrc` com o JSON literal de §2.6.2.
+- [x] Endurecer `.eslintrc.*`: `@typescript-eslint/no-explicit-any: "error"`,
       `@typescript-eslint/explicit-module-boundary-types: "warn"`, `react-hooks/exhaustive-deps: "error"`,
       preset `plugin:jsx-a11y/recommended`.
-- [ ] Adicionar em `package.json` os scripts `lint`, `format`, `format:check`, `type-check` conforme §2.6.2.
-- [ ] Garantir em `tsconfig.json`: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"noImplicitAny": true`.
-- [ ] Rodar `npm run lint`, `npm run type-check`, `npm run format:check` e corrigir o que aparecer.
-- [ ] Documentar no `README.md` os comandos em seção "Qualidade de código — frontend".
+- [x] Adicionar em `package.json` os scripts `lint`, `format`, `format:check`, `type-check` conforme §2.6.2.
+- [x] Garantir em `tsconfig.json`: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"noImplicitAny": true`.
+- [x] Rodar `npm run lint`, `npm run type-check`, `npm run format:check` e corrigir o que aparecer.
+- [x] Documentar no `README.md` os comandos em seção "Qualidade de código — frontend".
 
 Pronto quando: `npm run lint`, `npm run type-check`, `npm run format:check` rodam sobre o código existente
 sem erros (ajustando o que aparecer).
@@ -146,7 +146,7 @@ Referência: PRD §2.5.3, §2.6.2, §18 Fase 0.
 
 ### 🚦 Gate Fase 0
 
-- [ ] Todos os comandos da seção "Gates de qualidade" passam no código existente com a nova configuração.
+- [x] Todos os comandos da seção "Gates de qualidade" passam no código existente com a nova configuração.
 
 ---
 
@@ -156,9 +156,9 @@ Referência: PRD §2.5.3, §2.6.2, §18 Fase 0.
 
 Arquivos: `backend/requirements.txt`.
 
-- [ ] Adicionar `pydantic-ai`, `google-genai`, `sqlglot` em `backend/requirements.txt` (ordem alfabética).
-- [ ] Rodar `pip install -r requirements.txt`.
-- [ ] Executar `pip freeze | grep -E 'pydantic-ai|google-genai|sqlglot'` e confirmar presença.
+- [x] Adicionar `pydantic-ai`, `google-genai`, `sqlglot` em `backend/requirements.txt` (ordem alfabética).
+- [x] Rodar `pip install -r requirements.txt`.
+- [x] Executar `pip freeze | grep -E 'pydantic-ai|google-genai|sqlglot'` e confirmar presença.
 
 Pronto quando: `pip freeze` mostra os pacotes.
 
