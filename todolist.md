@@ -200,11 +200,11 @@ Referência: PRD §10.2, §15.3, §18 Fase 1.
 
 Arquivos: `backend/tests/test_anonymizer.py` (novo).
 
-- [ ] Criar o arquivo e importar `anonymize_rows` e `PII_TRANSFORMERS` (imports falharão até TASK-05).
-- [ ] Adicionar os 11 testes listados em §15.3 (disabled → no-op, hash determinístico para nomes, nomes diferentes
+- [x] Criar o arquivo e importar `anonymize_rows` e `PII_TRANSFORMERS` (imports falharão até TASK-05).
+- [x] Adicionar os 11 testes listados em §15.3 (disabled → no-op, hash determinístico para nomes, nomes diferentes
       → hashes diferentes, `mask_prefixo_cep`, redact de comentário, preserva não-PII, null-safe, lista vazia,
       independência de ordem de coluna, `zip(strict=True)` em desalinhamento).
-- [ ] Rodar `pytest tests/test_anonymizer.py` e confirmar coleta + falha.
+- [x] Rodar `pytest tests/test_anonymizer.py` e confirmar coleta + falha.
 
 Pronto quando: testes coletam e falham.
 
@@ -214,15 +214,15 @@ Referência: PRD §15.3 (`tests/test_anonymizer.py`), §18 Fase 1.
 
 Arquivos: `backend/app/services/anonymizer.py` (novo).
 
-- [ ] Criar módulo com docstring e imports conforme §13.1; usar `collections.abc.Callable`.
-- [ ] Declarar `_HASH_LENGTH: Final[int] = 6`, `_COMMENT_MAX_LENGTH: Final[int] = 40`,
+- [x] Criar módulo com docstring e imports conforme §13.1; usar `collections.abc.Callable`.
+- [x] Declarar `_HASH_LENGTH: Final[int] = 6`, `_COMMENT_MAX_LENGTH: Final[int] = 40`,
       `_NUMBER_PATTERN: Final[re.Pattern[str]] = re.compile(r"\d{3,}")`.
-- [ ] Implementar privados `_hash6`, `_mask_cep`, `_redact_comment`, `_hash_name` (factory) como em §13.1.
-- [ ] Declarar `PII_TRANSFORMERS: Final[dict[str, Callable[[Any], Any]]]` com entradas `nome_consumidor`,
+- [x] Implementar privados `_hash6`, `_mask_cep`, `_redact_comment`, `_hash_name` (factory) como em §13.1.
+- [x] Declarar `PII_TRANSFORMERS: Final[dict[str, Callable[[Any], Any]]]` com entradas `nome_consumidor`,
       `nome_vendedor`, `autor_resposta`, `prefixo_cep`, `comentario`, `titulo_comentario`.
-- [ ] Implementar `anonymize_rows(columns, rows, enabled) -> list[list[Any]]` com docstring Google;
+- [x] Implementar `anonymize_rows(columns, rows, enabled) -> list[list[Any]]` com docstring Google;
       usar `zip(..., strict=True)`.
-- [ ] Rodar todos os gates; confirmar testes de TASK-04 passam 100%.
+- [x] Rodar todos os gates; confirmar testes de TASK-04 passam 100%.
 
 Pronto quando: testes passam 100%; gates de qualidade limpos.
 
@@ -232,10 +232,10 @@ Referência: PRD §13.1, §15.3, §18 Fase 1.
 
 Arquivos: `backend/tests/test_readonly_db.py` (novo).
 
-- [ ] Criar o arquivo e importar `get_readonly_engine` (import falhará até TASK-07).
-- [ ] Adicionar os 5 testes listados em §15.3 (executa SELECT, rejeita INSERT/UPDATE/DELETE, falha se DB ausente).
-- [ ] Usar fixture temporária (`tmp_path`) para criar banco mínimo em disco com uma tabela de teste.
-- [ ] Rodar `pytest tests/test_readonly_db.py` e confirmar vermelho.
+- [x] Criar o arquivo e importar `get_readonly_engine` (import falhará até TASK-07).
+- [x] Adicionar os 5 testes listados em §15.3 (executa SELECT, rejeita INSERT/UPDATE/DELETE, falha se DB ausente).
+- [x] Usar fixture temporária (`tmp_path`) para criar banco mínimo em disco com uma tabela de teste.
+- [x] Rodar `pytest tests/test_readonly_db.py` e confirmar vermelho.
 
 Pronto quando: testes coletam e falham.
 
@@ -245,11 +245,11 @@ Referência: PRD §15.3 (`tests/test_readonly_db.py`), §18 Fase 1.
 
 Arquivos: `backend/app/services/readonly_db.py` (novo).
 
-- [ ] Criar módulo conforme §10.1: docstring, `from __future__ import annotations`, imports.
-- [ ] Implementar `get_readonly_engine(db_path: str = "./database.db") -> Engine` com `@lru_cache`,
+- [x] Criar módulo conforme §10.1: docstring, `from __future__ import annotations`, imports.
+- [x] Implementar `get_readonly_engine(db_path: str = "./database.db") -> Engine` com `@lru_cache`,
       docstring Google, `FileNotFoundError` quando path não existe.
-- [ ] Montar URI `sqlite:///file:{resolved}?mode=ro&uri=true` e `create_engine(uri, connect_args={"uri": True})`.
-- [ ] Rodar todos os gates; confirmar testes de TASK-06 passam.
+- [x] Montar URI `sqlite:///file:{resolved}?mode=ro&uri=true` e `create_engine(uri, connect_args={"uri": True})`.
+- [x] Rodar todos os gates; confirmar testes de TASK-06 passam.
 
 Pronto quando: testes passam 100%; gates limpos.
 
@@ -259,13 +259,13 @@ Referência: PRD §10.1, §15.3, §18 Fase 1.
 
 Arquivos: `backend/tests/test_retry.py` (novo), `backend/app/services/retry.py` (novo).
 
-- [ ] Criar `tests/test_retry.py` com os 5 testes de §15.3 (sucesso 1ª/2ª/3ª tentativa, falha após 3, contexto
+- [x] Criar `tests/test_retry.py` com os 5 testes de §15.3 (sucesso 1ª/2ª/3ª tentativa, falha após 3, contexto
       de erro propagado à próxima tentativa) e confirmar vermelho.
-- [ ] Criar `app/services/retry.py` com function `run_with_retry` async tipada
+- [x] Criar `app/services/retry.py` com function `run_with_retry` async tipada
       (`Callable[..., Awaitable[T]]` + contexto de erro), `MAX_ATTEMPTS: Final[int] = 3`.
-- [ ] Expor tipo `RetryContext` (Pydantic ou dataclass) contendo `sql_anterior: str | None` e
+- [x] Expor tipo `RetryContext` (Pydantic ou dataclass) contendo `sql_anterior: str | None` e
       `mensagem_erro: str | None`.
-- [ ] Rodar todos os gates; confirmar testes passam 100%.
+- [x] Rodar todos os gates; confirmar testes passam 100%.
 
 Pronto quando: testes passam 100%; gates limpos.
 
@@ -273,11 +273,11 @@ Referência: PRD §7.4, §15.3, §18 Fase 1.
 
 ### 🚦 Gate Fase 1
 
-- [ ] Rodar `ruff check .`, `ruff format --check .`, `mypy app/`, `pytest tests/ -v`,
+- [x] Rodar `ruff check .`, `ruff format --check .`, `mypy app/`, `pytest tests/ -v`,
       `pytest --cov=app --cov-report=term-missing`.
-- [ ] Todos verdes; cobertura ≥ 95% em `sql_guardrail.py` e `anonymizer.py`; ≥ 80% em `readonly_db.py` e
+- [x] Todos verdes; cobertura ≥ 95% em `sql_guardrail.py` e `anonymizer.py`; ≥ 80% em `readonly_db.py` e
       `retry.py`.
-- [ ] Revisão visual: módulos ≤ 300 linhas, funções ≤ 40 linhas, complexidade ≤ 10.
+- [x] Revisão visual: módulos ≤ 300 linhas, funções ≤ 40 linhas, complexidade ≤ 10.
 
 ---
 
