@@ -1,17 +1,17 @@
-import { ShoppingBag, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import type { ProdutoListItem } from "../../types/produto";
-import { formatCategoria, formatCurrency, formatNumber } from "../../utils/formatters";
-import { CATEGORIA_IMAGENS } from "../../utils/constants";
-import { Badge } from "../ui/Badge";
-import { Card } from "../ui/Card";
-import { StarRating } from "../ui/StarRating";
+import { ShoppingBag, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import type { ProdutoListItem } from '../../types/produto';
+import { formatCategoria, formatCurrency, formatNumber } from '../../utils/formatters';
+import { CATEGORIA_IMAGENS } from '../../utils/constants';
+import { Badge } from '../ui/Badge';
+import { Card } from '../ui/Card';
+import { StarRating } from '../ui/StarRating';
 
 interface ProdutoCardProps {
   produto: ProdutoListItem;
 }
 
-export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
+export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>): JSX.Element {
   const navigate = useNavigate();
   const imagemCategoria = CATEGORIA_IMAGENS[produto.categoria_produto];
 
@@ -20,7 +20,7 @@ export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
       {/* Image */}
       <div
         className="relative overflow-hidden rounded-t-xl card-image-responsive"
-        style={{ background: "var(--color-bg-elevated)" }}
+        style={{ background: 'var(--color-bg-elevated)' }}
       >
         {imagemCategoria ? (
           <img
@@ -36,7 +36,7 @@ export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(to bottom, transparent 40%, var(--color-bg-surface) 100%)",
+            background: 'linear-gradient(to bottom, transparent 40%, var(--color-bg-surface) 100%)',
           }}
         />
       </div>
@@ -49,7 +49,7 @@ export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
 
         <h3
           className="line-clamp-2 text-sm md:text-base font-semibold leading-snug"
-          style={{ color: "var(--color-text-primary)" }}
+          style={{ color: 'var(--color-text-primary)' }}
         >
           {produto.nome_produto}
         </h3>
@@ -57,7 +57,7 @@ export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
         {/* Rating row */}
         <div className="flex items-center justify-between">
           <StarRating rating={produto.avaliacao_media} size={13} showValue />
-          <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+          <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
             {formatNumber(produto.total_avaliacoes)} aval.
           </span>
         </div>
@@ -66,11 +66,14 @@ export function ProdutoCard({ produto }: Readonly<ProdutoCardProps>) {
         <div className="flex items-center justify-between">
           <span
             className="text-lg font-bold"
-            style={{ fontFamily: "'Outfit', sans-serif", color: "#34d399" }}
+            style={{ fontFamily: "'Outfit', sans-serif", color: '#34d399' }}
           >
             {formatCurrency(produto.preco_medio)}
           </span>
-          <span className="flex items-center gap-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
+          <span
+            className="flex items-center gap-1 text-xs"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
             <TrendingUp size={12} />
             {formatNumber(produto.total_vendas)}
           </span>

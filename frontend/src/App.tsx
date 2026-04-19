@@ -1,14 +1,14 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import { Layout } from "./components/layout/Layout";
-import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { useAuth } from "./hooks/useAuth";
-import { CatalogoPage } from "./pages/CatalogoPage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
-import { ProdutoDetalhePage } from "./pages/ProdutoDetalhePage";
-import { ProdutoFormPage } from "./pages/ProdutoFormPage";
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { Layout } from './components/layout/Layout';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useAuth } from './hooks/useAuth';
+import { CatalogoPage } from './pages/CatalogoPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ProdutoDetalhePage } from './pages/ProdutoDetalhePage';
+import { ProdutoFormPage } from './pages/ProdutoFormPage';
 
 function ProtectedLayout() {
   const { user, isLoading } = useAuth();
@@ -34,7 +34,7 @@ function AppRoutes() {
   );
 }
 
-export default function App() {
+export default function App(): JSX.Element {
   return (
     <ThemeProvider>
       <AuthProvider>

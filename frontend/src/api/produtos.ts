@@ -1,13 +1,8 @@
-import type { AvaliacaoItem, AvaliacaoStats } from "../types/avaliacao";
-import type { PaginatedResponse } from "../types/pagination";
-import type {
-  Produto,
-  ProdutoCreate,
-  ProdutoListItem,
-  ProdutoUpdate,
-} from "../types/produto";
-import type { VendaStats } from "../types/venda";
-import api from "./client";
+import type { AvaliacaoItem, AvaliacaoStats } from '../types/avaliacao';
+import type { PaginatedResponse } from '../types/pagination';
+import type { Produto, ProdutoCreate, ProdutoListItem, ProdutoUpdate } from '../types/produto';
+import type { VendaStats } from '../types/venda';
+import api from './client';
 
 export interface ProdutosParams {
   page?: number;
@@ -15,16 +10,13 @@ export interface ProdutosParams {
   search?: string;
   categoria?: string;
   sort_by?: string;
-  order?: "asc" | "desc";
+  order?: 'asc' | 'desc';
 }
 
 export async function getProdutos(
-  params: ProdutosParams = {}
+  params: ProdutosParams = {},
 ): Promise<PaginatedResponse<ProdutoListItem>> {
-  const response = await api.get<PaginatedResponse<ProdutoListItem>>(
-    "/produtos",
-    { params }
-  );
+  const response = await api.get<PaginatedResponse<ProdutoListItem>>('/produtos', { params });
   return response.data;
 }
 
@@ -40,29 +32,23 @@ export async function getVendas(id: string): Promise<VendaStats> {
 
 export async function getAvaliacoes(
   id: string,
-  params: { page?: number; per_page?: number } = {}
+  params: { page?: number; per_page?: number } = {},
 ): Promise<AvaliacaoStats> {
-  const response = await api.get<AvaliacaoStats>(
-    `/produtos/${id}/avaliacoes`,
-    { params }
-  );
+  const response = await api.get<AvaliacaoStats>(`/produtos/${id}/avaliacoes`, { params });
   return response.data;
 }
 
 export async function getCategorias(): Promise<string[]> {
-  const response = await api.get<string[]>("/produtos/categorias");
+  const response = await api.get<string[]>('/produtos/categorias');
   return response.data;
 }
 
 export async function createProduto(data: ProdutoCreate): Promise<Produto> {
-  const response = await api.post<Produto>("/produtos", data);
+  const response = await api.post<Produto>('/produtos', data);
   return response.data;
 }
 
-export async function updateProduto(
-  id: string,
-  data: ProdutoUpdate
-): Promise<Produto> {
+export async function updateProduto(id: string, data: ProdutoUpdate): Promise<Produto> {
   const response = await api.put<Produto>(`/produtos/${id}`, data);
   return response.data;
 }
@@ -73,20 +59,15 @@ export async function deleteProduto(id: string): Promise<void> {
 
 export async function responderAvaliacao(
   idAvaliacao: string,
-  resposta: string
+  resposta: string,
 ): Promise<AvaliacaoItem> {
-  const response = await api.post<AvaliacaoItem>(
-    `/produtos/avaliacoes/${idAvaliacao}/resposta`,
-    { resposta }
-  );
+  const response = await api.post<AvaliacaoItem>(`/produtos/avaliacoes/${idAvaliacao}/resposta`, {
+    resposta,
+  });
   return response.data;
 }
 
-export async function deleteRespostaAvaliacao(
-  idAvaliacao: string
-): Promise<AvaliacaoItem> {
-  const response = await api.delete<AvaliacaoItem>(
-    `/produtos/avaliacoes/${idAvaliacao}/resposta`
-  );
+export async function deleteRespostaAvaliacao(idAvaliacao: string): Promise<AvaliacaoItem> {
+  const response = await api.delete<AvaliacaoItem>(`/produtos/avaliacoes/${idAvaliacao}/resposta`);
   return response.data;
 }

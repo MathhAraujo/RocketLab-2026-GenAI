@@ -1,4 +1,4 @@
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from '../../contexts/ThemeContext';
 
 function categoryHue(name: string): number {
   let hash = 0;
@@ -12,12 +12,12 @@ interface BadgeProps {
   className?: string;
 }
 
-export function Badge({ children, category, className = "" }: Readonly<BadgeProps>) {
+export function Badge({ children, category, className = '' }: Readonly<BadgeProps>): JSX.Element {
   const { theme } = useTheme();
   const hue = category ? categoryHue(category) : 210;
 
   const style =
-    theme === "dark"
+    theme === 'dark'
       ? {
           background: `hsl(${hue} 60% 20%)`,
           color: `hsl(${hue} 80% 70%)`,

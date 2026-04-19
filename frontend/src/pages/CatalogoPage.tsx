@@ -1,26 +1,26 @@
-import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getCategorias } from "../api/produtos";
-import { ProdutoCard } from "../components/produtos/ProdutoCard";
-import { ProdutoFilters } from "../components/produtos/ProdutoFilters";
-import { EmptyState } from "../components/ui/EmptyState";
-import { SkeletonCard } from "../components/ui/Loading";
-import { Pagination } from "../components/ui/Pagination";
-import { Button } from "../components/ui/Button";
-import { useAuth } from "../hooks/useAuth";
-import { usePagination } from "../hooks/usePagination";
-import { useProdutos } from "../hooks/useProdutos";
+import { Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getCategorias } from '../api/produtos';
+import { ProdutoCard } from '../components/produtos/ProdutoCard';
+import { ProdutoFilters } from '../components/produtos/ProdutoFilters';
+import { EmptyState } from '../components/ui/EmptyState';
+import { SkeletonCard } from '../components/ui/Loading';
+import { Pagination } from '../components/ui/Pagination';
+import { Button } from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
+import { usePagination } from '../hooks/usePagination';
+import { useProdutos } from '../hooks/useProdutos';
 
-export function CatalogoPage() {
+export function CatalogoPage(): JSX.Element {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { page, perPage, goToPage, reset } = usePagination();
 
-  const [search, setSearch] = useState("");
-  const [categoria, setCategoria] = useState("");
-  const [sortBy, setSortBy] = useState("vendas");
-  const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [search, setSearch] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [sortBy, setSortBy] = useState('vendas');
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const [categorias, setCategorias] = useState<string[]>([]);
 
   const { data, isLoading, error } = useProdutos({
@@ -33,7 +33,9 @@ export function CatalogoPage() {
   });
 
   useEffect(() => {
-    getCategorias().then(setCategorias).catch(() => {});
+    getCategorias()
+      .then(setCategorias)
+      .catch(() => {});
   }, []);
 
   const handleSearchChange = (v: string) => {
@@ -84,19 +86,19 @@ export function CatalogoPage() {
         <div>
           <h1
             className="text-2xl font-bold"
-            style={{ fontFamily: "'Outfit', sans-serif", color: "var(--color-text-primary)" }}
+            style={{ fontFamily: "'Outfit', sans-serif", color: 'var(--color-text-primary)' }}
           >
             Catálogo
           </h1>
           {data && (
-            <p className="text-sm mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
-              {data.total.toLocaleString("pt-BR")} produto
-              {data.total === 1 ? "" : "s"}
+            <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+              {data.total.toLocaleString('pt-BR')} produto
+              {data.total === 1 ? '' : 's'}
             </p>
           )}
         </div>
         {user?.is_admin && (
-          <Button onClick={() => navigate("/produtos/novo")}>
+          <Button onClick={() => navigate('/produtos/novo')}>
             <Plus size={16} />
             Novo Produto
           </Button>
@@ -111,13 +113,17 @@ export function CatalogoPage() {
         categorias={categorias}
         onSearchChange={handleSearchChange}
         onCategoriaChange={handleCategoriaChange}
-        onSortByChange={(v) => { setSortBy(v); reset(); }}
-        onOrderChange={(v) => { setOrder(v); reset(); }}
+        onSortByChange={(v) => {
+          setSortBy(v);
+          reset();
+        }}
+        onOrderChange={(v) => {
+          setOrder(v);
+          reset();
+        }}
       />
 
-      {error && (
-        <p className="text-center text-sm text-red-400">{error}</p>
-      )}
+      {error && <p className="text-center text-sm text-red-400">{error}</p>}
 
       {renderContent()}
     </div>

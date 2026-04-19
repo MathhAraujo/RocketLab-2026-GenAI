@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star } from 'lucide-react';
 
 interface StarRatingProps {
   rating: number | null;
@@ -6,7 +6,11 @@ interface StarRatingProps {
   showValue?: boolean;
 }
 
-export function StarRating({ rating, size = 16, showValue = false }: Readonly<StarRatingProps>) {
+export function StarRating({
+  rating,
+  size = 16,
+  showValue = false,
+}: Readonly<StarRatingProps>): JSX.Element {
   if (rating == null) {
     return <span className="text-slate-500 text-sm">Sem avaliações</span>;
   }
@@ -17,12 +21,7 @@ export function StarRating({ rating, size = 16, showValue = false }: Readonly<St
         const fill = Math.min(1, Math.max(0, rating - i));
         return (
           <span key={i} className="relative inline-block" style={{ width: size, height: size }}>
-            <Star
-              size={size}
-              className="text-slate-600"
-              fill="none"
-              strokeWidth={1.5}
-            />
+            <Star size={size} className="text-slate-600" fill="none" strokeWidth={1.5} />
             {fill > 0 && (
               <span
                 className="absolute inset-0 overflow-hidden"
@@ -39,9 +38,7 @@ export function StarRating({ rating, size = 16, showValue = false }: Readonly<St
           </span>
         );
       })}
-      {showValue && (
-        <span className="text-sm text-slate-400 ml-1">{rating.toFixed(1)}</span>
-      )}
+      {showValue && <span className="text-sm text-slate-400 ml-1">{rating.toFixed(1)}</span>}
     </div>
   );
 }

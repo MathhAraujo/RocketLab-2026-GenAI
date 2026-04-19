@@ -1,32 +1,32 @@
-import { ShoppingBag, Sun, Moon } from "lucide-react";
-import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { useTheme } from "../contexts/ThemeContext";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
+import { ShoppingBag, Sun, Moon } from 'lucide-react';
+import { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
-export function LoginPage() {
+export function LoginPage(): JSX.Element {
   const { user, login } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   if (user) return <Navigate to="/catalogo" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setIsLoading(true);
     try {
       await login({ username, password });
-      navigate("/catalogo", { replace: true });
+      navigate('/catalogo', { replace: true });
     } catch {
-      setError("Usuário ou senha inválidos");
-      setPassword("");
+      setError('Usuário ou senha inválidos');
+      setPassword('');
     } finally {
       setIsLoading(false);
     }
@@ -36,12 +36,12 @@ export function LoginPage() {
     <div
       className="relative flex min-h-screen items-center justify-center p-4"
       style={{
-        background: "var(--color-bg-base)",
+        background: 'var(--color-bg-base)',
         backgroundImage: `
           linear-gradient(var(--color-border) 1px, transparent 1px),
           linear-gradient(90deg, var(--color-border) 1px, transparent 1px)
         `,
-        backgroundSize: "32px 32px",
+        backgroundSize: '32px 32px',
       }}
     >
       {/* Glow central */}
@@ -51,7 +51,7 @@ export function LoginPage() {
       >
         <div
           className="h-[500px] w-[500px] rounded-full opacity-10 blur-3xl"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent 70%)" }}
+          style={{ background: 'radial-gradient(circle, #6366f1, transparent 70%)' }}
         />
       </div>
 
@@ -59,9 +59,9 @@ export function LoginPage() {
       <button
         onClick={toggleTheme}
         className="absolute top-4 right-4 rounded-lg p-2 transition-colors hover:bg-zinc-800/60 z-10"
-        style={{ color: "var(--color-text-secondary)" }}
+        style={{ color: 'var(--color-text-secondary)' }}
       >
-        {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
       </button>
 
       <div className="relative z-10 w-full max-w-sm">
@@ -72,11 +72,11 @@ export function LoginPage() {
           </div>
           <h1
             className="text-3xl font-bold"
-            style={{ fontFamily: "'Outfit', sans-serif", color: "var(--color-text-primary)" }}
+            style={{ fontFamily: "'Outfit', sans-serif", color: 'var(--color-text-primary)' }}
           >
             Mercadão
           </h1>
-          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
             Painel administrativo
           </p>
         </div>
@@ -85,8 +85,8 @@ export function LoginPage() {
         <div
           className="rounded-2xl p-8 shadow-2xl"
           style={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border)",
+            background: 'var(--color-bg-surface)',
+            border: '1px solid var(--color-border)',
           }}
         >
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -114,9 +114,9 @@ export function LoginPage() {
               <p
                 className="rounded-lg px-3 py-2 text-sm"
                 style={{
-                  background: "rgba(244,63,94,0.1)",
-                  border: "1px solid rgba(244,63,94,0.3)",
-                  color: "#f43f5e",
+                  background: 'rgba(244,63,94,0.1)',
+                  border: '1px solid rgba(244,63,94,0.3)',
+                  color: '#f43f5e',
                 }}
               >
                 {error}
@@ -125,11 +125,14 @@ export function LoginPage() {
             <Button type="submit" isLoading={isLoading} className="w-full mt-2">
               Entrar
             </Button>
-            <div className="mt-4 flex flex-col items-center gap-2 text-sm pt-2" style={{ color: "var(--color-text-secondary)" }}>
+            <div
+              className="mt-4 flex flex-col items-center gap-2 text-sm pt-2"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               <p>Ainda não tem uma conta?</p>
               <button
                 type="button"
-                onClick={() => navigate("/register")}
+                onClick={() => navigate('/register')}
                 className="font-medium text-indigo-400 transition-colors hover:text-indigo-300 hover:underline"
               >
                 Criar uma nova conta

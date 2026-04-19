@@ -1,8 +1,8 @@
-import { useEffect } from "react";
-import { LayoutDashboard, LayoutGrid, PackagePlus, Sun, Moon, LogOut, X } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useEffect } from 'react';
+import { LayoutDashboard, LayoutGrid, PackagePlus, Sun, Moon, LogOut, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,28 +12,33 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { to: "/catalogo", icon: LayoutGrid, label: "Catálogo", adminOnly: false },
-  { to: "/produtos/novo", icon: PackagePlus, label: "Novo Produto", adminOnly: true },
+  { to: '/catalogo', icon: LayoutGrid, label: 'Catálogo', adminOnly: false },
+  { to: '/produtos/novo', icon: PackagePlus, label: 'Novo Produto', adminOnly: true },
 ];
 
-export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonly<SidebarProps>) {
+export function Sidebar({
+  isOpen,
+  isExpanded,
+  onClose,
+  onExpandChange,
+}: Readonly<SidebarProps>): JSX.Element {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate('/login');
   };
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     };
   }, [isOpen]);
 
@@ -42,7 +47,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
       {/* Logo */}
       <div
         className="hidden lg:flex h-14 items-center overflow-hidden shrink-0"
-        style={{ borderBottom: "1px solid var(--color-border)" }}
+        style={{ borderBottom: '1px solid var(--color-border)' }}
       >
         <div className="flex w-14 shrink-0 items-center justify-center">
           <LayoutDashboard size={20} className="text-indigo-500" />
@@ -50,7 +55,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
         {showLabels && (
           <span
             className="whitespace-nowrap text-base font-bold"
-            style={{ fontFamily: "'Outfit', sans-serif", color: "var(--color-text-primary)" }}
+            style={{ fontFamily: "'Outfit', sans-serif", color: 'var(--color-text-primary)' }}
           >
             Mercadão
           </span>
@@ -62,12 +67,19 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
         {/* Dashboard — disabled placeholder */}
         <div
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-not-allowed opacity-40"
-          title={showLabels ? undefined : "Dashboard (Em breve)"}
+          title={showLabels ? undefined : 'Dashboard (Em breve)'}
         >
-          <LayoutDashboard size={18} className="shrink-0" style={{ color: "var(--color-text-secondary)" }} />
+          <LayoutDashboard
+            size={18}
+            className="shrink-0"
+            style={{ color: 'var(--color-text-secondary)' }}
+          />
           {showLabels && (
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm font-medium truncate" style={{ color: "var(--color-text-secondary)" }}>
+              <span
+                className="text-sm font-medium truncate"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
                 Dashboard
               </span>
               <span className="rounded px-1 py-0.5 text-[10px] font-medium bg-zinc-700 text-zinc-400 shrink-0">
@@ -77,50 +89,52 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
           )}
         </div>
 
-        {navItems.filter(item => !item.adminOnly || user?.is_admin).map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            onClick={onClose}
-            title={showLabels ? undefined : label}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
-              ${isActive
-                ? "border-l-2 border-indigo-500 text-indigo-400 pl-[10px]"
-                : "border-l-2 border-transparent hover:bg-zinc-800/60"
+        {navItems
+          .filter((item) => !item.adminOnly || user?.is_admin)
+          .map(({ to, icon: Icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={onClose}
+              title={showLabels ? undefined : label}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+              ${
+                isActive
+                  ? 'border-l-2 border-indigo-500 text-indigo-400 pl-[10px]'
+                  : 'border-l-2 border-transparent hover:bg-zinc-800/60'
               }`
-            }
-            style={({ isActive }) => ({
-              background: isActive ? "rgba(99,102,241,0.12)" : undefined,
-              color: isActive ? "#818cf8" : "var(--color-text-secondary)",
-            })}
-          >
-            <Icon size={18} className="shrink-0" />
-            {showLabels && <span className="truncate">{label}</span>}
-          </NavLink>
-        ))}
+              }
+              style={({ isActive }) => ({
+                background: isActive ? 'rgba(99,102,241,0.12)' : undefined,
+                color: isActive ? '#818cf8' : 'var(--color-text-secondary)',
+              })}
+            >
+              <Icon size={18} className="shrink-0" />
+              {showLabels && <span className="truncate">{label}</span>}
+            </NavLink>
+          ))}
       </nav>
 
       {/* Footer */}
       <div
         className="flex flex-col gap-1 p-2 shrink-0"
-        style={{ borderTop: "1px solid var(--color-border)" }}
+        style={{ borderTop: '1px solid var(--color-border)' }}
       >
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+          title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-zinc-800/60"
-          style={{ color: "var(--color-text-secondary)" }}
+          style={{ color: 'var(--color-text-secondary)' }}
         >
-          {theme === "dark"
-            ? <Sun size={18} className="shrink-0" />
-            : <Moon size={18} className="shrink-0" />
-          }
+          {theme === 'dark' ? (
+            <Sun size={18} className="shrink-0" />
+          ) : (
+            <Moon size={18} className="shrink-0" />
+          )}
           {showLabels && (
-            <span className="truncate">
-              {theme === "dark" ? "Modo claro" : "Modo escuro"}
-            </span>
+            <span className="truncate">{theme === 'dark' ? 'Modo claro' : 'Modo escuro'}</span>
           )}
         </button>
 
@@ -130,7 +144,7 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
             onClick={handleLogout}
             title={showLabels ? undefined : `Sair (${user.username})`}
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-rose-500/10 hover:text-rose-400"
-            style={{ color: "var(--color-text-secondary)" }}
+            style={{ color: 'var(--color-text-secondary)' }}
           >
             <LogOut size={18} className="shrink-0" />
             {showLabels && (
@@ -150,30 +164,33 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
           role="presentation"
           className="fixed inset-0 z-20 bg-black/50 lg:hidden touch-none"
           onClick={onClose}
-          onKeyDown={(e) => e.key === "Escape" && onClose()}
+          onKeyDown={(e) => e.key === 'Escape' && onClose()}
         />
       )}
 
       {/* Mobile drawer */}
       <aside
         className={`fixed inset-y-0 left-0 z-30 w-[85%] max-w-xs flex flex-col sm:w-[220px] lg:hidden transition-transform duration-200
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
         style={{
-          background: "var(--color-bg-surface)",
-          borderRight: "1px solid var(--color-border)",
+          background: 'var(--color-bg-surface)',
+          borderRight: '1px solid var(--color-border)',
         }}
       >
-        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--color-border)" }}>
+        <div
+          className="flex items-center justify-between px-4 py-3"
+          style={{ borderBottom: '1px solid var(--color-border)' }}
+        >
           <div className="flex items-center gap-2">
             <LayoutDashboard size={20} className="text-indigo-500" />
             <span
               className="text-base font-bold"
-              style={{ fontFamily: "'Outfit', sans-serif", color: "var(--color-text-primary)" }}
+              style={{ fontFamily: "'Outfit', sans-serif", color: 'var(--color-text-primary)' }}
             >
               Mercadão
             </span>
           </div>
-          <button onClick={onClose} style={{ color: "var(--color-text-secondary)" }}>
+          <button onClick={onClose} style={{ color: 'var(--color-text-secondary)' }}>
             <X size={18} />
           </button>
         </div>
@@ -183,10 +200,10 @@ export function Sidebar({ isOpen, isExpanded, onClose, onExpandChange }: Readonl
       {/* Desktop sidebar */}
       <aside
         className={`hidden lg:flex fixed inset-y-0 left-0 z-20 flex-col transition-all duration-200
-          ${isExpanded ? "w-[220px]" : "w-14"}`}
+          ${isExpanded ? 'w-[220px]' : 'w-14'}`}
         style={{
-          background: "var(--color-bg-surface)",
-          borderRight: "1px solid var(--color-border)",
+          background: 'var(--color-bg-surface)',
+          borderRight: '1px solid var(--color-border)',
         }}
         onMouseEnter={() => onExpandChange(true)}
         onMouseLeave={() => onExpandChange(false)}

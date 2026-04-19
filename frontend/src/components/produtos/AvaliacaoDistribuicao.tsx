@@ -1,28 +1,25 @@
-import { Star } from "lucide-react";
-import type { AvaliacaoStats } from "../../types/avaliacao";
-import { formatNumber } from "../../utils/formatters";
-import { StarRating } from "../ui/StarRating";
+import { Star } from 'lucide-react';
+import type { AvaliacaoStats } from '../../types/avaliacao';
+import { formatNumber } from '../../utils/formatters';
+import { StarRating } from '../ui/StarRating';
 
 interface AvaliacaoDistribuicaoProps {
   stats: AvaliacaoStats;
 }
 
-export function AvaliacaoDistribuicao({ stats }: Readonly<AvaliacaoDistribuicaoProps>) {
+export function AvaliacaoDistribuicao({
+  stats,
+}: Readonly<AvaliacaoDistribuicaoProps>): JSX.Element {
   const max = Math.max(...Object.values(stats.distribuicao), 1);
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="flex flex-col items-center gap-1 min-w-[100px]">
-        <span
-          className="text-4xl font-bold"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          {stats.avaliacao_media == null
-            ? "—"
-            : stats.avaliacao_media.toFixed(1)}
+        <span className="text-4xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+          {stats.avaliacao_media == null ? '—' : stats.avaliacao_media.toFixed(1)}
         </span>
         <StarRating rating={stats.avaliacao_media} size={18} />
-        <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+        <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
           {formatNumber(stats.total_avaliacoes)} avaliações
         </span>
       </div>
@@ -35,14 +32,14 @@ export function AvaliacaoDistribuicao({ stats }: Readonly<AvaliacaoDistribuicaoP
             <div key={star} className="flex items-center gap-2 text-xs">
               <span
                 className="flex items-center gap-0.5 w-6 shrink-0"
-                style={{ color: "var(--color-text-secondary)" }}
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 {star}
                 <Star size={10} className="text-yellow-400" fill="currentColor" />
               </span>
               <div
                 className="flex-1 h-1.5 rounded-full overflow-hidden"
-                style={{ background: "var(--color-bg-elevated)" }}
+                style={{ background: 'var(--color-bg-elevated)' }}
               >
                 <div
                   className="h-full rounded-full bg-yellow-400 transition-all"
@@ -51,7 +48,7 @@ export function AvaliacaoDistribuicao({ stats }: Readonly<AvaliacaoDistribuicaoP
               </div>
               <span
                 className="w-8 text-right shrink-0"
-                style={{ color: "var(--color-text-muted)" }}
+                style={{ color: 'var(--color-text-muted)' }}
               >
                 {formatNumber(count)}
               </span>

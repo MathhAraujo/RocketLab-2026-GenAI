@@ -1,10 +1,10 @@
-import { useState } from "react";
-import type { Produto, ProdutoCreate, ProdutoUpdate } from "../../types/produto";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-import { Select } from "../ui/Select";
-import { CATEGORIAS } from "../../utils/constants";
-import { formatCategoria } from "../../utils/formatters";
+import { useState } from 'react';
+import type { Produto, ProdutoCreate, ProdutoUpdate } from '../../types/produto';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
+import { CATEGORIAS } from '../../utils/constants';
+import { formatCategoria } from '../../utils/formatters';
 
 interface ProdutoFormProps {
   initialData?: Produto;
@@ -22,7 +22,7 @@ function SectionTitle({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <p
       className="text-xs font-semibold uppercase tracking-wider mb-4"
-      style={{ color: "var(--color-text-secondary)" }}
+      style={{ color: 'var(--color-text-secondary)' }}
     >
       {children}
     </p>
@@ -34,26 +34,26 @@ export function ProdutoForm({
   onSubmit,
   onCancel,
   isLoading = false,
-}: Readonly<ProdutoFormProps>) {
+}: Readonly<ProdutoFormProps>): JSX.Element {
   const [form, setForm] = useState({
-    nome_produto: initialData?.nome_produto ?? "",
-    categoria_produto: initialData?.categoria_produto ?? "",
-    peso_produto_gramas: initialData?.peso_produto_gramas?.toString() ?? "",
-    comprimento_centimetros: initialData?.comprimento_centimetros?.toString() ?? "",
-    altura_centimetros: initialData?.altura_centimetros?.toString() ?? "",
-    largura_centimetros: initialData?.largura_centimetros?.toString() ?? "",
+    nome_produto: initialData?.nome_produto ?? '',
+    categoria_produto: initialData?.categoria_produto ?? '',
+    peso_produto_gramas: initialData?.peso_produto_gramas?.toString() ?? '',
+    comprimento_centimetros: initialData?.comprimento_centimetros?.toString() ?? '',
+    altura_centimetros: initialData?.altura_centimetros?.toString() ?? '',
+    largura_centimetros: initialData?.largura_centimetros?.toString() ?? '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    if (!form.nome_produto.trim()) newErrors.nome_produto = "Nome é obrigatório";
-    if (!form.categoria_produto) newErrors.categoria_produto = "Categoria é obrigatória";
+    if (!form.nome_produto.trim()) newErrors.nome_produto = 'Nome é obrigatório';
+    if (!form.categoria_produto) newErrors.categoria_produto = 'Categoria é obrigatória';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const parseFloat_ = (v: string) => (v === "" ? null : Number.parseFloat(v));
+  const parseFloat_ = (v: string) => (v === '' ? null : Number.parseFloat(v));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +99,7 @@ export function ProdutoForm({
       </div>
 
       {/* Separator */}
-      <hr style={{ borderColor: "var(--color-border)" }} />
+      <hr style={{ borderColor: 'var(--color-border)' }} />
 
       {/* Dimensões */}
       <div>
@@ -149,13 +149,13 @@ export function ProdutoForm({
       </div>
 
       {/* Separator + actions */}
-      <hr style={{ borderColor: "var(--color-border)" }} />
+      <hr style={{ borderColor: 'var(--color-border)' }} />
       <div className="flex justify-end gap-3">
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancelar
         </Button>
         <Button type="submit" isLoading={isLoading}>
-          {initialData ? "Salvar alterações" : "Criar produto"}
+          {initialData ? 'Salvar alterações' : 'Criar produto'}
         </Button>
       </div>
     </form>

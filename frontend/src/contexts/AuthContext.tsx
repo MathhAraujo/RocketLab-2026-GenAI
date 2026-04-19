@@ -1,16 +1,9 @@
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import { login as apiLogin, getMe } from "../api/auth";
-import type { AuthUser, LoginRequest } from "../types/auth";
-import { AUTH_STORAGE_KEYS } from "../utils/constants";
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { login as apiLogin, getMe } from '../api/auth';
+import type { AuthUser, LoginRequest } from '../types/auth';
+import { AUTH_STORAGE_KEYS } from '../utils/constants';
 
-interface AuthContextValue {
+export interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   isLoading: boolean;
@@ -20,10 +13,10 @@ interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>): JSX.Element {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(
-    () => localStorage.getItem(AUTH_STORAGE_KEYS.token)
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem(AUTH_STORAGE_KEYS.token),
   );
   const [isLoading, setIsLoading] = useState(true);
 
@@ -54,11 +47,10 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, token, isLoading, login, logout }), [user, token, isLoading, login, logout]);
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ user, token, isLoading, login, logout }),
+    [user, token, isLoading, login, logout],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

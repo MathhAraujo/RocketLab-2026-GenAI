@@ -1,4 +1,4 @@
-import { PackageSearch } from "lucide-react";
+import { PackageSearch } from 'lucide-react';
 
 interface EmptyStateProps {
   title?: string;
@@ -6,9 +6,9 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  title = "Nenhum resultado encontrado",
-  description = "Tente ajustar os filtros ou realizar uma nova busca.",
-}: Readonly<EmptyStateProps>) {
+  title = 'Nenhum resultado encontrado',
+  description = 'Tente ajustar os filtros ou realizar uma nova busca.',
+}: Readonly<EmptyStateProps>): JSX.Element {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-400">
       <PackageSearch size={48} strokeWidth={1} className="text-slate-600" />

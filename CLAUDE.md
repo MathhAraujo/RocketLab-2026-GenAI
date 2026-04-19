@@ -21,7 +21,8 @@ Qualidade de código vem antes de velocidade. Um módulo funcional mas ilegível
 3. Para tarefas de código com testes (Fase 1 e 2): escrever testes primeiro, confirmar que falham, depois implementar
 4. Executar os gates de qualidade abaixo
 5. Parar e mostrar o diff — aguardar aprovação do usuário antes de marcar `[x]` e prosseguir
-6. Uma tarefa por turno. Nunca pular tarefas. Nunca executar múltiplas em lote sem pedir permissão.
+6. Gerar uma mensagem de commit sugerida (seguindo Conventional Commits em pt-BR) e aguardar autorização explícita do usuário antes de prosseguir para a próxima tarefa
+7. Uma tarefa por turno. Nunca pular tarefas. Nunca executar múltiplas em lote sem pedir permissão.
 
 ## Gates de qualidade (rodar antes de marcar qualquer tarefa como pronta)
 

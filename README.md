@@ -241,6 +241,30 @@ http://192.168.1.100:5173
 
 > Se a pagina nao carregar, verifique se o firewall do sistema operacional permite conexoes nas portas 5173 e 8000. No Windows, isso pode ser ajustado em "Firewall do Windows Defender > Regras de Entrada".
 
+## Qualidade de código — frontend
+
+```bash
+cd frontend
+
+# Verificar linting (zero warnings esperado)
+npm run lint
+
+# Verificar tipos TypeScript (zero erros esperado)
+npm run type-check
+
+# Verificar formatação Prettier (zero diff esperado)
+npm run format:check
+
+# Aplicar formatação automaticamente
+npm run format
+```
+
+Critérios de qualidade obrigatórios:
+
+- `npm run lint` → 0 warnings
+- `npm run type-check` → 0 erros
+- `npm run format:check` → sem diff
+
 ## Qualidade de código — backend
 
 ```bash

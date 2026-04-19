@@ -1,12 +1,21 @@
-import { useEffect, useState } from "react";
-import { getProdutos, type ProdutosParams } from "../api/produtos";
-import type { PaginatedResponse } from "../types/pagination";
-import type { ProdutoListItem } from "../types/produto";
+import { useEffect, useState } from 'react';
+import { getProdutos, type ProdutosParams } from '../api/produtos';
+import type { PaginatedResponse } from '../types/pagination';
+import type { ProdutoListItem } from '../types/produto';
 
-export function useProdutos({ page, per_page, search, categoria, sort_by, order }: ProdutosParams) {
-  const [data, setData] = useState<PaginatedResponse<ProdutoListItem> | null>(
-    null
-  );
+export function useProdutos({
+  page,
+  per_page,
+  search,
+  categoria,
+  sort_by,
+  order,
+}: ProdutosParams): {
+  data: PaginatedResponse<ProdutoListItem> | null;
+  isLoading: boolean;
+  error: string | null;
+} {
+  const [data, setData] = useState<PaginatedResponse<ProdutoListItem> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +33,7 @@ export function useProdutos({ page, per_page, search, categoria, sort_by, order 
       })
       .catch(() => {
         if (!cancelled) {
-          setError("Erro ao carregar produtos");
+          setError('Erro ao carregar produtos');
           setIsLoading(false);
         }
       });
