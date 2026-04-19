@@ -1,21 +1,23 @@
+"""Schemas Pydantic de request e response da aplicação."""
+
 from app.schemas.produto import (
-    ProdutoCreate,
-    ProdutoUpdate,
-    ProdutoListItem,
-    ProdutoDetalhe,
-    VendaStats,
-    ItemAvaliacao,
     AvaliacaoStats,
+    ItemAvaliacao,
     PaginatedProdutos,
+    ProdutoCreate,
+    ProdutoDetalhe,
+    ProdutoListItem,
+    ProdutoUpdate,
+    VendaStats,
 )
 
 __all__ = [
-    "ProdutoCreate",
-    "ProdutoUpdate",
-    "ProdutoListItem",
-    "ProdutoDetalhe",
-    "VendaStats",
-    "ItemAvaliacao",
     "AvaliacaoStats",
+    "ItemAvaliacao",
     "PaginatedProdutos",
+    "ProdutoCreate",
+    "ProdutoDetalhe",
+    "ProdutoListItem",
+    "ProdutoUpdate",
+    "VendaStats",
 ]

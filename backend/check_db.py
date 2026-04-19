@@ -14,7 +14,9 @@ for table in ["avaliacao_pedido", "item_pedido", "pedido", "produtos"]:
         print(f"  {table}: ERRO - {e}")
 
 print("\nAmostra de produtos (vendas/avaliacao):")
-cur.execute("SELECT id_produto, nome_produto, total_vendas, avaliacao_media, total_avaliacoes FROM produtos LIMIT 5")
+cur.execute(
+    "SELECT id_produto, nome_produto, total_vendas, avaliacao_media, total_avaliacoes FROM produtos LIMIT 5"
+)
 for r in cur.fetchall():
     print(" ", r)
 

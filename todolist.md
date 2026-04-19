@@ -110,14 +110,14 @@ Critérios numéricos:
 
 Arquivos: `backend/pyproject.toml` (novo), `backend/requirements.txt`, `README.md`.
 
-- [ ] Adicionar `ruff` e `mypy` em `backend/requirements.txt` e rodar `pip install -r requirements.txt`.
-- [ ] Criar `backend/pyproject.toml` copiando literalmente a configuração de §2.6.1 (blocos `[tool.ruff]`,
+- [x] Adicionar `ruff` e `mypy` em `backend/requirements.txt` e rodar `pip install -r requirements.txt`.
+- [x] Criar `backend/pyproject.toml` copiando literalmente a configuração de §2.6.1 (blocos `[tool.ruff]`,
       `[tool.ruff.lint]`, `[tool.ruff.lint.pydocstyle]`, `[tool.ruff.lint.mccabe]`,
       `[tool.ruff.lint.per-file-ignores]`, `[tool.ruff.format]`, `[tool.mypy]`, `[[tool.mypy.overrides]]`).
-- [ ] Rodar `ruff format .` e `ruff check . --fix` no código existente; resolver issues remanescentes.
-- [ ] Rodar `mypy app/` no código existente; adicionar `ignore_missing_imports` em overrides para libs sem stubs
+- [x] Rodar `ruff format .` e `ruff check . --fix` no código existente; resolver issues remanescentes.
+- [x] Rodar `mypy app/` no código existente; adicionar `ignore_missing_imports` em overrides para libs sem stubs
       e corrigir erros reais de tipo.
-- [ ] Documentar em `README.md` os comandos padronizados de §2.6.1 numa seção "Qualidade de código — backend".
+- [x] Documentar em `README.md` os comandos padronizados de §2.6.1 numa seção "Qualidade de código — backend".
 
 Pronto quando: `ruff check .` e `mypy app/` executam sobre o código existente sem erros
 (ajustando o que aparecer).

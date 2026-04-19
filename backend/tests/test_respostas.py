@@ -9,7 +9,6 @@ from tests.conftest import (
     criar_vendedor,
 )
 
-
 PRODUTO_BASE = {
     "nome_produto": "Tênis de Resposta",
     "categoria_produto": "calcados",
@@ -35,7 +34,9 @@ def test_responder_avaliacao_sucesso(client, admin_headers, db):
     id_avaliacao = criar_avaliacao(db, id_pedido, nota=5, titulo="Ótimo", comentario="Excelente")
 
     payload = {"resposta": "Obrigado pelo feedback!"}
-    r2 = client.post(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=admin_headers)
+    r2 = client.post(
+        f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=admin_headers
+    )
     assert r2.status_code == 200
     body = r2.json()
     assert body["resposta_admin"] == payload["resposta"]
@@ -45,7 +46,9 @@ def test_responder_avaliacao_sucesso(client, admin_headers, db):
 
 def test_responder_avaliacao_nao_encontrada(client, admin_headers):
     payload = {"resposta": "Obrigado"}
-    r = client.post("/api/produtos/avaliacoes/invalid_id/resposta", json=payload, headers=admin_headers)
+    r = client.post(
+        "/api/produtos/avaliacoes/invalid_id/resposta", json=payload, headers=admin_headers
+    )
     assert r.status_code == 404
 
 
@@ -60,7 +63,12 @@ def test_responder_avaliacao_proibido_para_nao_admin(client, db, admin_headers):
     id_avaliacao = criar_avaliacao(db, id_pedido, nota=4)
 
     username = f"user_{uuid.uuid4().hex[:8]}"
-    user = Usuario(id_usuario=uuid.uuid4().hex, username=username, hashed_password=get_password_hash("1234"), is_admin=False)
+    user = Usuario(
+        id_usuario=uuid.uuid4().hex,
+        username=username,
+        hashed_password=get_password_hash("1234"),
+        is_admin=False,
+    )
     db.add(user)
     db.commit()
 
@@ -68,7 +76,9 @@ def test_responder_avaliacao_proibido_para_nao_admin(client, db, admin_headers):
     user_headers = {"Authorization": f"Bearer {token}"}
 
     payload = {"resposta": "Tentativa indevida"}
-    r2 = client.post(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=user_headers)
+    r2 = client.post(
+        f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=user_headers
+    )
     assert r2.status_code == 403
 
 
@@ -82,7 +92,9 @@ def test_deletar_resposta_avaliacao_sucesso(client, admin_headers, db):
     id_avaliacao = criar_avaliacao(db, id_pedido, nota=5)
 
     payload = {"resposta": "Deletar me!"}
-    client.post(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=admin_headers)
+    client.post(
+        f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", json=payload, headers=admin_headers
+    )
 
     r2 = client.delete(f"/api/produtos/avaliacoes/{id_avaliacao}/resposta", headers=admin_headers)
     assert r2.status_code == 200
@@ -93,6 +105,7 @@ def test_deletar_resposta_avaliacao_sucesso(client, admin_headers, db):
 
 
 # --- Testes de invalidação de cache ---
+
 
 def test_cache_invalida_apos_responder_avaliacao(client, admin_headers, db):
     id_produto = criar_produto(client, admin_headers).json()["id_produto"]

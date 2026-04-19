@@ -1,4 +1,10 @@
+"""Factory da aplicação FastAPI: registro de middlewares, routers e cache."""
+
+from __future__ import annotations
+
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,19 +16,21 @@ from app.routers import auth, produtos
 
 
 def custom_key_builder(
-    func,
+    func: Callable[..., Any],
     namespace: str = "",
-    request: Request = None,
-    response: Response = None,
-    *args,
-    **kwargs,
+    request: Request | None = None,
+    response: Response | None = None,
+    *args: object,
+    **kwargs: object,
 ) -> str:
+    """Construir chave de cache excluindo parâmetros de sessão e usuário."""
     args_str = ",".join(f"{k}={v}" for k, v in kwargs.items() if k not in ("db", "current_user"))
     return f"{FastAPICache.get_prefix()}:{namespace}:{func.__module__}:{func.__name__}:{args_str}"
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Inicializar o backend de cache em memória na inicialização da aplicação."""
     FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache", key_builder=custom_key_builder)
     yield
 
@@ -52,5 +60,6 @@ app.include_router(produtos.router, prefix="/api")
     summary="Health Check",
     description="Verifica o status da API e se está rodando corretamente.",
 )
-def health():
+def health() -> dict[str, str]:
+    """Retornar status de saúde da API."""
     return {"status": "ok", "message": "API rodando com sucesso!"}

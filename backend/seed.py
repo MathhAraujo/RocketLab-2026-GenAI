@@ -1,20 +1,20 @@
 import csv
+import datetime
 import os
 import sys
-import datetime
-from datetime import datetime, date
+from datetime import date, datetime
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from sqlalchemy.dialects.sqlite import insert as sqlite_insert  # noqa: E402
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
-from app.database import SessionLocal, engine, Base  # noqa: E402
-from app.models.avaliacao_pedido import AvaliacaoPedido  # noqa: E402
-from app.models.consumidor import Consumidor  # noqa: E402
-from app.models.item_pedido import ItemPedido  # noqa: E402
-from app.models.pedido import Pedido  # noqa: E402
-from app.models.produto import Produto  # noqa: E402
-from app.models.vendedor import Vendedor  # noqa: E402
+from app.database import Base, SessionLocal, engine
+from app.models.avaliacao_pedido import AvaliacaoPedido
+from app.models.consumidor import Consumidor
+from app.models.item_pedido import ItemPedido
+from app.models.pedido import Pedido
+from app.models.produto import Produto
+from app.models.vendedor import Vendedor
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -24,6 +24,7 @@ BATCH_SIZE = 2_000
 # ---------------------------------------------------------------------------
 # Helpers de conversão
 # ---------------------------------------------------------------------------
+
 
 def _float(val: str) -> float | None:
     s = val.strip()
@@ -79,6 +80,7 @@ def _stream_insert(db, model, path: str, row_fn) -> int:
 # ---------------------------------------------------------------------------
 # Funções de seed por tabela
 # ---------------------------------------------------------------------------
+
 
 def _seed_consumidores(db) -> None:
     if db.query(Consumidor).count() > 0:
@@ -194,7 +196,9 @@ def _seed_avaliacoes(db) -> None:
             "data_resposta": _datetime(r["data_resposta"]),
         }, r["id_avaliacao"]
 
-    n = _stream_insert(db, AvaliacaoPedido, os.path.join(DATA_DIR, "fat_avaliacoes_pedidos.csv"), row_fn)
+    n = _stream_insert(
+        db, AvaliacaoPedido, os.path.join(DATA_DIR, "fat_avaliacoes_pedidos.csv"), row_fn
+    )
     print(f"  avaliacoes_pedidos: {n} registros inseridos.")
 
 
@@ -214,10 +218,12 @@ def _atualizar_agregados_produtos(db) -> None:
     )
 
     for row in vendas_stats:
-        db.query(Produto).filter(Produto.id_produto == row.id_produto).update({
-            Produto.total_vendas: row.total_vendas,
-            Produto.preco_medio: round(float(row.preco_medio), 2) if row.preco_medio else None,
-        })
+        db.query(Produto).filter(Produto.id_produto == row.id_produto).update(
+            {
+                Produto.total_vendas: row.total_vendas,
+                Produto.preco_medio: round(float(row.preco_medio), 2) if row.preco_medio else None,
+            }
+        )
 
     # Avaliações: total e média por produto (via pedidos)
     aval_stats = (
@@ -232,10 +238,14 @@ def _atualizar_agregados_produtos(db) -> None:
     )
 
     for row in aval_stats:
-        db.query(Produto).filter(Produto.id_produto == row.id_produto).update({
-            Produto.total_avaliacoes: row.total_avaliacoes,
-            Produto.avaliacao_media: round(float(row.avaliacao_media), 2) if row.avaliacao_media else None,
-        })
+        db.query(Produto).filter(Produto.id_produto == row.id_produto).update(
+            {
+                Produto.total_avaliacoes: row.total_avaliacoes,
+                Produto.avaliacao_media: round(float(row.avaliacao_media), 2)
+                if row.avaliacao_media
+                else None,
+            }
+        )
 
     db.commit()
     print("  agregados atualizados.")
@@ -244,6 +254,7 @@ def _atualizar_agregados_produtos(db) -> None:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
 
 def seed_all() -> None:
     print("Garantindo que as tabelas existem...")

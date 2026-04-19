@@ -1,16 +1,22 @@
+"""Router FastAPI para autenticação: login, registro e perfil do usuário."""
+
+from __future__ import annotations
+
+import uuid
+from typing import Final
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import uuid
 
 from app.database import get_db
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UsuarioAutenticado
-from app.models.usuario import Usuario
-from app.security import verify_password, get_password_hash, create_access_token
 from app.dependencies import get_current_user
+from app.models.usuario import Usuario
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UsuarioAutenticado
+from app.security import create_access_token, get_password_hash, verify_password
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-MIN_PASSWORD_LENGTH = 4
+MIN_PASSWORD_LENGTH: Final[int] = 4
 
 
 @router.post(
@@ -19,8 +25,8 @@ MIN_PASSWORD_LENGTH = 4
     summary="Autenticar usuário",
     description=(
         "Autentica um usuário existente com `username` e `password`. "
-        "Retorna um **Bearer JWT** para ser usado no header `Authorization` das demais requisições. "
-        "O token tem validade de **7 dias**."
+        "Retorna um **Bearer JWT** para ser usado no header `Authorization` das demais "
+        "requisições. O token tem validade de **7 dias**."
     ),
     response_description="Token JWT de acesso e tipo do token.",
     responses={
@@ -28,7 +34,8 @@ MIN_PASSWORD_LENGTH = 4
         422: {"description": "Corpo da requisição inválido — campos obrigatórios ausentes."},
     },
 )
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
+    """Autenticar usuário e retornar JWT."""
     user = db.query(Usuario).filter(Usuario.username == payload.username).first()
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(
@@ -56,9 +63,13 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         422: {"description": "Corpo da requisição inválido."},
     },
 )
-def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> UsuarioAutenticado:
+    """Registrar novo usuário e retornar seus dados públicos."""
     if len(payload.password) < MIN_PASSWORD_LENGTH:
-        raise HTTPException(status_code=400, detail=f"A senha deve conter pelo menos {MIN_PASSWORD_LENGTH} caracteres.")
+        raise HTTPException(
+            status_code=400,
+            detail=f"A senha deve conter pelo menos {MIN_PASSWORD_LENGTH} caracteres.",
+        )
     user = db.query(Usuario).filter(Usuario.username == payload.username).first()
     if user:
         raise HTTPException(status_code=400, detail="Nome de usuário já existe.")
@@ -81,13 +92,14 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     description=(
         "Retorna os dados do usuário atualmente autenticado com base no **Bearer JWT** "
         "fornecido no header `Authorization`. "
-        "Use este endpoint para verificar se o token ainda é válido e identificar o role do usuário."
+        "Use este endpoint para verificar se o token ainda é válido e identificar o role "
+        "do usuário."
     ),
     response_description="Username e flag de administrador do usuário autenticado.",
     responses={
         401: {"description": "Token ausente, inválido ou expirado."},
     },
 )
-def me(current_user: Usuario = Depends(get_current_user)):
+def me(current_user: Usuario = Depends(get_current_user)) -> UsuarioAutenticado:
+    """Retornar os dados públicos do usuário autenticado."""
     return UsuarioAutenticado(username=current_user.username, is_admin=current_user.is_admin)
-

@@ -1,7 +1,11 @@
+"""Router FastAPI para CRUD de produtos, vendas e avaliações."""
+
+from __future__ import annotations
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from math import ceil
-from typing import List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_cache import FastAPICache
@@ -15,6 +19,7 @@ from app.models.avaliacao_pedido import AvaliacaoPedido
 from app.models.item_pedido import ItemPedido
 from app.models.pedido import Pedido
 from app.models.produto import Produto
+from app.models.usuario import Usuario
 from app.schemas.produto import (
     AvaliacaoStats,
     ItemAvaliacao,
@@ -30,14 +35,15 @@ from app.schemas.produto import (
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
 
-def _buscar_produto(id_produto: str, db: Session) -> Optional[dict]:
+def _buscar_produto(id_produto: str, db: Session) -> dict[str, Any] | None:
+    """Buscar produto por ID e retornar seus campos como dicionário ou None se inexistente."""
     p = db.query(Produto).filter(Produto.id_produto == id_produto).first()
     if not p:
         return None
     return {c.name: getattr(p, c.name) for c in p.__table__.columns}
 
 
-_ORDENACAO = {
+_ORDENACAO: dict[str, list[Any]] = {
     "nome_produto": [Produto.nome_produto],
     "categoria_produto": [Produto.categoria_produto],
     "preco_medio": [Produto.preco_medio],
@@ -52,19 +58,23 @@ _ORDENACAO = {
     "/",
     response_model=PaginatedProdutos,
     summary="Listar Produtos",
-    description="Lista paginada de produtos com opções de busca, filtro por categoria e cálculo de totais de venda e avaliação média.",
+    description=(
+        "Lista paginada de produtos com opções de busca, filtro por categoria "
+        "e cálculo de totais de venda e avaliação média."
+    ),
 )
-@cache(expire=60)
+@cache(expire=60)  # type: ignore[arg-type]
 def listar_produtos(
-    busca: Optional[str] = Query(None, alias="search"),
-    categoria: Optional[str] = Query(None),
+    busca: str | None = Query(None, alias="search"),
+    categoria: str | None = Query(None),
     pagina: int = Query(1, alias="page", ge=1),
     por_pagina: int = Query(20, alias="per_page", ge=1, le=100),
     ordenar_por: str = Query("nome_produto", alias="sort_by"),
     ordem: str = Query("asc", alias="order"),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
+    current_user: Usuario = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Listar produtos com paginação, busca textual e ordenação."""
     query = db.query(Produto)
 
     if busca:
@@ -84,7 +94,10 @@ def listar_produtos(
     linhas = query.order_by(*colunas_ordenadas).offset(skip).limit(por_pagina).all()
 
     return {
-        "items": [ProdutoListItem(**{c.name: getattr(l, c.name) for c in l.__table__.columns}) for l in linhas],
+        "items": [
+            ProdutoListItem(**{c.name: getattr(linha, c.name) for c in linha.__table__.columns})
+            for linha in linhas
+        ],
         "total": total,
         "page": pagina,
         "per_page": por_pagina,
@@ -94,18 +107,17 @@ def listar_produtos(
 
 @router.get(
     "/categorias",
-    response_model=List[str],
+    response_model=list[str],
     summary="Listar Categorias",
     description="Retorna todas as categorias únicas de produtos registradas.",
 )
-@cache(expire=60)
-def listar_categorias(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    rows = (
-        db.query(Produto.categoria_produto)
-        .distinct()
-        .order_by(Produto.categoria_produto)
-        .all()
-    )
+@cache(expire=60)  # type: ignore[arg-type]
+def listar_categorias(
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+) -> list[str]:
+    """Retornar lista ordenada de categorias únicas de produtos."""
+    rows = db.query(Produto.categoria_produto).distinct().order_by(Produto.categoria_produto).all()
     return [r[0] for r in rows]
 
 
@@ -115,8 +127,13 @@ def listar_categorias(db: Session = Depends(get_db), current_user=Depends(get_cu
     summary="Obter Produto",
     description="Retorna detalhes completos de um produto específico com base no seu ID.",
 )
-@cache(expire=60)
-def obter_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+@cache(expire=60)  # type: ignore[arg-type]
+def obter_produto(
+    id_produto: str,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Retornar detalhes completos de um produto ou 404 se não encontrado."""
     produto = _buscar_produto(id_produto, db)
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -130,12 +147,20 @@ def obter_produto(id_produto: str, db: Session = Depends(get_db), current_user=D
     summary="Criar Produto",
     description="Registra um novo produto.",
 )
-async def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db), current_user=Depends(require_admin)):
+async def criar_produto(
+    payload: ProdutoCreate,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+) -> dict[str, Any]:
+    """Criar produto e invalidar o cache de listagem."""
     novo = Produto(id_produto=uuid.uuid4().hex, **payload.model_dump())
     db.add(novo)
     db.commit()
     await FastAPICache.get_backend().clear()
-    return _buscar_produto(novo.id_produto, db)
+    result = _buscar_produto(novo.id_produto, db)
+    if result is None:
+        raise HTTPException(status_code=500, detail="Erro ao recuperar produto criado.")
+    return result
 
 
 @router.put(
@@ -145,8 +170,12 @@ async def criar_produto(payload: ProdutoCreate, db: Session = Depends(get_db), c
     description="Altera as propriedades de um produto existente com base em seu ID.",
 )
 async def atualizar_produto(
-    id_produto: str, payload: ProdutoUpdate, db: Session = Depends(get_db), current_user=Depends(require_admin)
-):
+    id_produto: str,
+    payload: ProdutoUpdate,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+) -> dict[str, Any]:
+    """Atualizar campos do produto e invalidar o cache."""
     campos = payload.model_dump(exclude_unset=True)
     if not campos:
         raise HTTPException(status_code=422, detail="Nenhum campo para atualizar")
@@ -159,7 +188,10 @@ async def atualizar_produto(
         setattr(produto, campo, valor)
     db.commit()
     await FastAPICache.get_backend().clear()
-    return _buscar_produto(id_produto, db)
+    result = _buscar_produto(id_produto, db)
+    if result is None:
+        raise HTTPException(status_code=500, detail="Erro ao recuperar produto atualizado.")
+    return result
 
 
 @router.delete(
@@ -168,7 +200,12 @@ async def atualizar_produto(
     summary="Deletar Produto",
     description="Deleta um produto de forma definitiva.",
 )
-async def deletar_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(require_admin)):
+async def deletar_produto(
+    id_produto: str,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+) -> None:
+    """Remover produto do banco e invalidar o cache."""
     produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -183,8 +220,13 @@ async def deletar_produto(id_produto: str, db: Session = Depends(get_db), curren
     summary="Obter Vendas do Produto",
     description="Calcula e retorna estatísticas consolidadas de venda de um produto.",
 )
-@cache(expire=60)
-def obter_vendas_produto(id_produto: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+@cache(expire=60)  # type: ignore[arg-type]
+def obter_vendas_produto(
+    id_produto: str,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+) -> VendaStats:
+    """Calcular estatísticas de vendas de um produto a partir dos itens de pedido."""
     if not db.query(Produto).filter(Produto.id_produto == id_produto).first():
         raise HTTPException(status_code=404, detail="Produto não encontrado")
 
@@ -224,28 +266,27 @@ def obter_vendas_produto(id_produto: str, db: Session = Depends(get_db), current
     "/{id_produto}/avaliacoes",
     response_model=AvaliacaoStats,
     summary="Listar Avaliações do Produto",
-    description="Recupera de maneira paginada as avaliações de consumidores atreladas a este produto.",
+    description=(
+        "Recupera de maneira paginada as avaliações de consumidores atreladas a este produto."
+    ),
 )
-@cache(expire=60)
+@cache(expire=60)  # type: ignore[arg-type]
 def listar_avaliacoes_produto(
     id_produto: str,
     pagina: int = Query(1, alias="page", ge=1),
     por_pagina: int = Query(10, alias="per_page", ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
+    current_user: Usuario = Depends(get_current_user),
+) -> AvaliacaoStats:
+    """Retornar estatísticas e listagem paginada de avaliações de um produto."""
     if not db.query(Produto).filter(Produto.id_produto == id_produto).first():
         raise HTTPException(status_code=404, detail="Produto não encontrado")
 
     sq_pedidos = (
-        db.query(ItemPedido.id_pedido)
-        .filter(ItemPedido.id_produto == id_produto)
-        .distinct()
+        db.query(ItemPedido.id_pedido).filter(ItemPedido.id_produto == id_produto).distinct()
     )
 
-    query_base = db.query(AvaliacaoPedido).filter(
-        AvaliacaoPedido.id_pedido.in_(sq_pedidos)
-    )
+    query_base = db.query(AvaliacaoPedido).filter(AvaliacaoPedido.id_pedido.in_(sq_pedidos))
 
     total = query_base.count()
 
@@ -267,8 +308,7 @@ def listar_avaliacoes_produto(
 
     skip = (pagina - 1) * por_pagina
     avaliacoes = (
-        query_base
-        .order_by(AvaliacaoPedido.data_comentario.desc())
+        query_base.order_by(AvaliacaoPedido.data_comentario.desc())
         .offset(skip)
         .limit(por_pagina)
         .all()
@@ -286,14 +326,10 @@ def listar_avaliacoes_produto(
                 avaliacao=av.avaliacao,
                 titulo_comentario=av.titulo_comentario,
                 comentario=av.comentario,
-                data_comentario=(
-                    av.data_comentario.isoformat() if av.data_comentario else None
-                ),
+                data_comentario=(av.data_comentario.isoformat() if av.data_comentario else None),
                 resposta_admin=av.resposta_admin,
                 autor_resposta=av.autor_resposta,
-                data_resposta=(
-                    av.data_resposta.isoformat() if av.data_resposta else None
-                ),
+                data_resposta=(av.data_resposta.isoformat() if av.data_resposta else None),
             )
             for av in avaliacoes
         ],
@@ -318,14 +354,15 @@ async def responder_avaliacao(
     id_avaliacao: str,
     payload: RespostaRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
-):
+    current_user: Usuario = Depends(require_admin),
+) -> ItemAvaliacao:
+    """Publicar resposta do admin a uma avaliação e invalidar o cache."""
     av = db.query(AvaliacaoPedido).filter(AvaliacaoPedido.id_avaliacao == id_avaliacao).first()
     if not av:
         raise HTTPException(status_code=404, detail="Avaliação não encontrada")
     av.resposta_admin = payload.resposta
     av.autor_resposta = current_user.username
-    av.data_resposta = datetime.now(timezone.utc)
+    av.data_resposta = datetime.now(UTC)
     db.commit()
     db.refresh(av)
     await FastAPICache.get_backend().clear()
@@ -354,8 +391,9 @@ async def responder_avaliacao(
 async def deletar_resposta_avaliacao(
     id_avaliacao: str,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
-):
+    current_user: Usuario = Depends(require_admin),
+) -> ItemAvaliacao:
+    """Remover resposta do admin de uma avaliação e invalidar o cache."""
     av = db.query(AvaliacaoPedido).filter(AvaliacaoPedido.id_avaliacao == id_avaliacao).first()
     if not av:
         raise HTTPException(status_code=404, detail="Avaliação não encontrada")

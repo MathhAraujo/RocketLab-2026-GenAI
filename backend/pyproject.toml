@@ -1,0 +1,50 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["alembic/versions", "check_db.py", "seed.py"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",   # pycodestyle + pyflakes
+    "I",             # isort
+    "UP",            # pyupgrade
+    "B",             # flake8-bugbear
+    "N",             # pep8-naming
+    "D",             # pydocstyle
+    "C90",           # mccabe complexity
+    "RUF",           # ruff-specific
+]
+ignore = ["D203", "D212"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
+"alembic/*" = ["D"]
+# FastAPI usa Depends() em assinaturas de função — padrão legítimo do framework
+"app/routers/*" = ["B008"]
+"app/dependencies.py" = ["B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "sqlglot.*",
+    "google.genai.*",
+    "pydantic_ai.*",
+    "fastapi_cache.*",
+    "bcrypt.*",
+    "passlib.*",
+]
+ignore_missing_imports = true

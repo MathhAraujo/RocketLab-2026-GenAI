@@ -114,8 +114,14 @@ def test_ordenacao_por_nome_desc(client, admin_headers):
 
 
 def test_ordenacao_por_categoria(client, admin_headers):
-    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "P1", "categoria_produto": "roupas"})
-    criar(client, admin_headers, {**PRODUTO_BASE, "nome_produto": "P2", "categoria_produto": "calcados"})
+    criar(
+        client, admin_headers, {**PRODUTO_BASE, "nome_produto": "P1", "categoria_produto": "roupas"}
+    )
+    criar(
+        client,
+        admin_headers,
+        {**PRODUTO_BASE, "nome_produto": "P2", "categoria_produto": "calcados"},
+    )
     r = client.get("/api/produtos/?sort_by=categoria_produto&order=asc", headers=admin_headers)
     items = r.json()["items"]
     assert items[0]["categoria_produto"] == "calcados"
@@ -141,7 +147,9 @@ def test_obter_produto_inexistente(client, admin_headers):
 
 def test_atualizar_produto(client, admin_headers):
     id_ = criar(client, admin_headers).json()["id_produto"]
-    r = client.put(f"/api/produtos/{id_}", json={"nome_produto": "Novo Nome"}, headers=admin_headers)
+    r = client.put(
+        f"/api/produtos/{id_}", json={"nome_produto": "Novo Nome"}, headers=admin_headers
+    )
     assert r.status_code == 200
     assert r.json()["nome_produto"] == "Novo Nome"
 
@@ -246,7 +254,9 @@ def test_avaliacoes_paginacao(client, admin_headers, db):
         id_pedido = criar_pedido_com_item(db, id_produto, id_consumidor, id_vendedor)
         criar_avaliacao(db, id_pedido, nota=nota)
 
-    r = client.get(f"/api/produtos/{id_produto}/avaliacoes?page=1&per_page=2", headers=admin_headers)
+    r = client.get(
+        f"/api/produtos/{id_produto}/avaliacoes?page=1&per_page=2", headers=admin_headers
+    )
     assert r.status_code == 200
     body = r.json()
     assert len(body["avaliacoes"]) == 2
@@ -262,6 +272,7 @@ def test_avaliacoes_produto_inexistente(client, admin_headers):
 
 
 # --- Testes de invalidação de cache ---
+
 
 def test_cache_invalida_apos_criar_produto(client, admin_headers):
     r1 = client.get("/api/produtos/", headers=admin_headers)

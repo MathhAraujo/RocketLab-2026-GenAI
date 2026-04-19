@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
 import pytest
 from fastapi.testclient import TestClient
@@ -17,9 +16,9 @@ from app.models.avaliacao_pedido import AvaliacaoPedido
 from app.models.consumidor import Consumidor
 from app.models.item_pedido import ItemPedido
 from app.models.pedido import Pedido
-from app.models.vendedor import Vendedor
 from app.models.usuario import Usuario
-from app.security import get_password_hash, create_access_token
+from app.models.vendedor import Vendedor
+from app.security import get_password_hash
 
 
 @pytest.fixture(autouse=True)
@@ -36,8 +35,8 @@ def db():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    sessao = Session()
+    session_factory = sessionmaker(bind=engine)
+    sessao = session_factory()
     yield sessao
     sessao.close()
 
@@ -107,26 +106,30 @@ def user_headers(user_client):
 
 def criar_consumidor(db) -> str:
     id_consumidor = uuid.uuid4().hex
-    db.add(Consumidor(
-        id_consumidor=id_consumidor,
-        nome_consumidor="Consumidor Teste",
-        prefixo_cep="01310",
-        cidade="São Paulo",
-        estado="SP",
-    ))
+    db.add(
+        Consumidor(
+            id_consumidor=id_consumidor,
+            nome_consumidor="Consumidor Teste",
+            prefixo_cep="01310",
+            cidade="São Paulo",
+            estado="SP",
+        )
+    )
     db.commit()
     return id_consumidor
 
 
 def criar_vendedor(db) -> str:
     id_vendedor = uuid.uuid4().hex
-    db.add(Vendedor(
-        id_vendedor=id_vendedor,
-        nome_vendedor="Vendedor Teste",
-        prefixo_cep="01310",
-        cidade="São Paulo",
-        estado="SP",
-    ))
+    db.add(
+        Vendedor(
+            id_vendedor=id_vendedor,
+            nome_vendedor="Vendedor Teste",
+            prefixo_cep="01310",
+            cidade="São Paulo",
+            estado="SP",
+        )
+    )
     db.commit()
     return id_vendedor
 
@@ -140,19 +143,23 @@ def criar_pedido_com_item(
     status: str = "entregue",
 ) -> str:
     id_pedido = uuid.uuid4().hex
-    db.add(Pedido(
-        id_pedido=id_pedido,
-        id_consumidor=id_consumidor,
-        status=status,
-    ))
-    db.add(ItemPedido(
-        id_pedido=id_pedido,
-        id_item=1,
-        id_produto=id_produto,
-        id_vendedor=id_vendedor,
-        preco_BRL=preco,
-        preco_frete=10.0,
-    ))
+    db.add(
+        Pedido(
+            id_pedido=id_pedido,
+            id_consumidor=id_consumidor,
+            status=status,
+        )
+    )
+    db.add(
+        ItemPedido(
+            id_pedido=id_pedido,
+            id_item=1,
+            id_produto=id_produto,
+            id_vendedor=id_vendedor,
+            preco_BRL=preco,
+            preco_frete=10.0,
+        )
+    )
     db.commit()
     return id_pedido
 
@@ -161,17 +168,19 @@ def criar_avaliacao(
     db,
     id_pedido: str,
     nota: int,
-    titulo: Optional[str] = None,
-    comentario: Optional[str] = None,
+    titulo: str | None = None,
+    comentario: str | None = None,
 ) -> str:
     id_avaliacao = uuid.uuid4().hex
-    db.add(AvaliacaoPedido(
-        id_avaliacao=id_avaliacao,
-        id_pedido=id_pedido,
-        avaliacao=nota,
-        titulo_comentario=titulo,
-        comentario=comentario,
-        data_comentario=datetime.now(),
-    ))
+    db.add(
+        AvaliacaoPedido(
+            id_avaliacao=id_avaliacao,
+            id_pedido=id_pedido,
+            avaliacao=nota,
+            titulo_comentario=titulo,
+            comentario=comentario,
+            data_comentario=datetime.now(),
+        )
+    )
     db.commit()
     return id_avaliacao

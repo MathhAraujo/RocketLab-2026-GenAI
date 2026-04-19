@@ -241,6 +241,35 @@ http://192.168.1.100:5173
 
 > Se a pagina nao carregar, verifique se o firewall do sistema operacional permite conexoes nas portas 5173 e 8000. No Windows, isso pode ser ajustado em "Firewall do Windows Defender > Regras de Entrada".
 
+## Qualidade de código — backend
+
+```bash
+cd backend
+
+# Formatar código (aplica as correções)
+python -m ruff format .
+
+# Verificar estilo e linting (zero issues esperado)
+python -m ruff check .
+
+# Verificar tipos em modo estrito
+python -m mypy app/
+
+# Rodar suíte de testes
+python -m pytest tests/ -v
+
+# Rodar com relatório de cobertura
+python -m pytest --cov=app --cov-report=term-missing
+```
+
+Critérios de qualidade obrigatórios:
+
+- `ruff format --check .` → sem diff
+- `ruff check .` → 0 issues
+- `mypy app/` → 0 erros (modo strict)
+- `pytest tests/ -v` → 100% verde
+- Cobertura ≥ 80% nos módulos novos
+
 ## Executando os testes
 
 ```bash
