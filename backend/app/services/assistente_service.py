@@ -15,9 +15,10 @@ from sqlalchemy import Engine, text
 
 import app.agents.insight_agent as _insight_mod
 import app.agents.sql_agent as _sql_mod
-from app.agents.sql_agent import SqlGenerationResult
+from app.agents.sql_agent import FormatacaoColuna, SqlGenerationResult
 from app.errors import GeminiNotConfiguredError, GeminiQuotaExhaustedError, GeminiRateLimitError
 from app.schemas.assistente import (
+    FormatType,
     GraficoVisualizacao,
     MetadadosResposta,
     RespostaAssistente,
@@ -123,6 +124,15 @@ def _construir_grafico(
     )
 
 
+def _formatacao_para_dict(
+    items: list[FormatacaoColuna] | None,
+) -> dict[str, FormatType] | None:
+    """Convert agent list format to the dict expected by TabelaVisualizacao."""
+    if not items:
+        return None
+    return {entry.coluna: entry.tipo for entry in items}
+
+
 def _construir_visualizacoes(
     sql_result: SqlGenerationResult,
     columns: list[str],
@@ -131,6 +141,7 @@ def _construir_visualizacoes(
     """Compose visualisation blocks following §7.2 composition rules."""
     visualizacoes: list[Visualizacao] = []
     titulo = sql_result.explicacao_seca[:80] or "Resultado"
+    formatacao = _formatacao_para_dict(sql_result.formatacao_colunas)
 
     if sql_result.forcar_tabela:
         visualizacoes.append(
@@ -138,7 +149,7 @@ def _construir_visualizacoes(
                 titulo=titulo,
                 colunas=columns,
                 linhas=rows,
-                formatacao_colunas=sql_result.formatacao_colunas,
+                formatacao_colunas=formatacao,
             )
         )
 
@@ -152,7 +163,7 @@ def _construir_visualizacoes(
                 titulo=titulo,
                 colunas=columns,
                 linhas=rows,
-                formatacao_colunas=sql_result.formatacao_colunas,
+                formatacao_colunas=formatacao,
             )
         )
 

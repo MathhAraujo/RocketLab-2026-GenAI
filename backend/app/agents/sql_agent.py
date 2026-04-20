@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Final, NoReturn
 
+from google.genai.errors import APIError as GoogleAPIError
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.exceptions import ModelHTTPError
@@ -59,13 +60,14 @@ do SELECT — incluindo aliases definidos com AS. Nunca invente nomes que não a
 Exemplo: se o SELECT tem `COUNT(*) AS total_pedidos`, use `"total_pedidos"` em `eixo_y`.
 
 ### FORMATAÇÃO DE COLUNAS
-Para toda coluna no resultado, informe o tipo em `formatacao_colunas`:
+Para toda coluna no resultado, preencha `formatacao_colunas` como uma LISTA de objetos
+`{{"coluna": "<nome>", "tipo": "<tipo>"}}`. Tipos disponíveis:
 - "monetario": valores financeiros em BRL (preços, fretes, receitas, totais monetários)
 - "float": decimais sem contexto monetário (avaliações, médias, pesos, ratios)
 - "inteiro": contagens, quantidades, IDs numéricos
 - "texto": strings, datas, categorias — não formatar como número
 Use o contexto semântico da pergunta e do alias AS, não apenas o nome da coluna.
-Exemplo: `SUM(preco_BRL) AS receita_total` → "monetario"; `AVG(avaliacao) AS media` → "float".
+Exemplo: `[{{"coluna": "receita_total", "tipo": "monetario"}}, {{"coluna": "media", "tipo": "float"}}]`.
 
 ### IDIOMA
 Português do Brasil. `explicacao_seca` com no máximo 2 frases.
@@ -91,6 +93,18 @@ class GraficoConfig(BaseModel):
     eixo_y: str = ""
 
 
+class FormatacaoColuna(BaseModel):
+    """Single column-format entry.
+
+    A flat list of these replaces ``dict[str, FormatType]`` so that the JSON
+    schema uses ``items`` instead of ``additionalProperties``, which Gemini
+    does not support.
+    """
+
+    coluna: str
+    tipo: FormatType
+
+
 class SqlGenerationResult(BaseModel):
     """Structured output returned by the SQL generation agent."""
 
@@ -101,7 +115,7 @@ class SqlGenerationResult(BaseModel):
     forcar_tabela: bool = True
     eh_off_topic: bool = False
     mensagem_off_topic: str | None = None
-    formatacao_colunas: dict[str, FormatType] | None = None
+    formatacao_colunas: list[FormatacaoColuna] | None = None
 
 
 def _make_agent() -> Agent[None, SqlGenerationResult]:
@@ -122,6 +136,19 @@ def _classify_http_error(exc: ModelHTTPError) -> NoReturn:
     """Convert a ModelHTTPError into the appropriate domain exception."""
     if exc.status_code == _HTTP_RATE_LIMIT:
         body_str = str(exc.body or "").lower()
+        if "quota" in body_str:
+            raise GeminiQuotaExhaustedError(str(exc)) from exc
+        raise GeminiRateLimitError(str(exc)) from exc
+    raise exc
+
+
+def _classify_google_error(exc: GoogleAPIError) -> NoReturn:
+    """Convert a google-genai APIError into the appropriate domain exception.
+
+    The Google SDK raises APIError (not ModelHTTPError) for HTTP 4xx/5xx responses.
+    """
+    if exc.code == _HTTP_RATE_LIMIT:
+        body_str = str(exc.details or "").lower()
         if "quota" in body_str:
             raise GeminiQuotaExhaustedError(str(exc)) from exc
         raise GeminiRateLimitError(str(exc)) from exc
@@ -162,3 +189,5 @@ async def gerar_sql(
         return result.output
     except ModelHTTPError as exc:
         _classify_http_error(exc)
+    except GoogleAPIError as exc:
+        _classify_google_error(exc)
