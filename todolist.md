@@ -92,7 +92,7 @@ Critérios numéricos:
 - TASK-24 → §7.2, §7.3, §8.1
 - TASK-25 → §8.1 (SQLViewer)
 - TASK-26 → §6 US-09, §8.1 (SampleQuestions)
-- TASK-27 → §7.6 (localStorage)
+- TASK-27 → §7.6 (localStorage) | TASK-44/45/46 → §21.6 (dropdown + cache completo)
 - TASK-28 → §7.5, §13 (anonimização)
 - TASK-29 / TASK-30 → §6 US-08 (exportação)
 - TASK-31 → §8.1 (Navbar)
@@ -834,6 +834,55 @@ Pronto quando: formatação híbrida funcional; guardrails aplicados; gates fron
 
 Referência: PRD §8.1.1, §21.5.
 
+### TASK-44 — Migrar `useLocalHistory.ts` para cache de resposta completa
+
+Arquivo: `frontend/src/hooks/useLocalHistory.ts`.
+
+- [x] Atualizar `EntradaHistorico` para incluir `resposta: RespostaAssistente` e `anonimizar: boolean`; importar tipo de `../types/assistente`.
+- [x] Constantes no topo: `MAX_HISTORICO = 10`, `MAX_STORED_ROWS = 100`.
+- [x] Helper `_capRows(resposta: RespostaAssistente): RespostaAssistente` — retorna clone com `visualizacoes` truncadas em `MAX_STORED_ROWS` por tabela.
+- [x] Trocar assinatura de `adicionar` para `(pergunta: string, anonimizar: boolean, resposta: RespostaAssistente) => void`.
+- [x] Ao carregar do localStorage, filtrar entradas que não tenham campo `resposta` (migration silenciosa).
+- [x] `useEffect` de persistência: `setItem` em try/catch; em `QuotaExceededError`, reduzir array e re-tentar em loop; se esgotar, `removeItem` + `console.warn`.
+- [x] Rodar `npm run lint`, `npm run type-check`, `npm run format:check` — zero issues.
+
+Pronto quando: hook compila, entradas persistidas têm `resposta`, quota-safe.
+
+Referência: PRD §3 D10, §7.6, §21.6.
+
+### TASK-45 — Criar `HistoryDropdown.tsx` e remover `HistorySidebar.tsx`
+
+Arquivos: `frontend/src/components/assistente/HistoryDropdown.tsx` (novo);
+deletar `frontend/src/components/assistente/HistorySidebar.tsx`.
+
+- [x] Componente ≤ 120 linhas: `type HistoryDropdownProps = { historico: EntradaHistorico[]; onPick: (entrada: EntradaHistorico) => void; onLimpar: () => void }`.
+- [x] Estado interno `aberto: boolean`; botão toggle com `aria-expanded`, `aria-controls`, contador "(N)" quando houver histórico.
+- [x] Painel: `absolute` posicionado sobre o botão, lista rolável, itens `<button>` com `title` para truncamento.
+- [x] Click fora fecha (listener `mousedown` com `useRef`); tecla `Escape` fecha.
+- [x] Dark mode via `dark:` prefix consistente.
+- [x] Rodar `npm run lint`, `npm run type-check`, `npm run format:check`.
+
+Pronto quando: dropdown abre/fecha, acessível via teclado; gates frontend limpos.
+
+Referência: PRD §6 US-07, §8.1, §21.6.
+
+### TASK-46 — Rewiring em `AssistentePage.tsx`
+
+Arquivo: `frontend/src/pages/AssistentePage.tsx`.
+
+- [x] Remover `<aside>`, backdrop mobile, botão hamburguer, estado `sidebarAberta`, import de `HistorySidebar`.
+- [x] Importar `HistoryDropdown` e inseri-lo imediatamente acima de `<PromptInput>`.
+- [x] `handlePickHistorico(entrada)`: `setPergunta(entrada.pergunta)`, `setAnonimizar(entrada.anonimizar)`, `setResposta(entrada.resposta)`, `setErroApi(null)`.
+- [x] Em `handleSubmit` com sucesso sem `erro_amigavel`: chamar `adicionar(pergunta, anonimizar, resultado)`.
+- [x] Layout vira coluna única (`flex flex-col gap-4`); remover wrapper de sidebar.
+- [x] Toggle de anonimização continua visível em mobile e desktop.
+- [x] Rodar `npm run lint`, `npm run type-check`, `npm run format:check`.
+- [x] Smoke test: pergunta → aparece no dropdown → clicar restaura → "Limpar" zera.
+
+Pronto quando: sem regressão em dark mode e mobile (≥ 360px); gates limpos; histórico restaura resposta completa.
+
+Referência: PRD §7.6, §8.1, §21.6.
+
 ### 🚦 Gate Final
 
 - [x] TODOS os gates de §16 verdes.
@@ -853,7 +902,7 @@ Referência: PRD §8.1.1, §21.5.
 - [x] Gráfico renderizado quando apropriado.
 - [x] Toggle 🔒 mascara PII deterministicamente.
 - [x] "Ver SQL gerado" exibe a query.
-- [x] Histórico de 10 via `localStorage` + "Limpar".
+- [x] Histórico de 10 via `localStorage` (dropdown + cache de resposta completa) + "Limpar".
 - [x] Perguntas sugeridas funcionais.
 - [x] Export CSV válido.
 - [x] Export PNG legível.

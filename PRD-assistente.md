@@ -419,7 +419,7 @@ Scripts em `package.json`:
 | D7 | Mostrar SQL gerado | Sim, colapsável na UI | Transparência e debug |
 | D8 | Perguntas sugeridas | Sim, usando exemplos do PDF | Onboarding |
 | D9 | Exportação | CSV (tabelas) + PNG (gráficos) | Reuso em outras ferramentas |
-| D10 | Histórico | `localStorage` (sem tabela nova) | MVP simples, privacidade por usuário |
+| D10 | Histórico | `localStorage` com resposta completa (sem tabela nova); cap 10 entradas + 100 linhas/tabela persistida + fallback `QuotaExceededError`; dropdown acima do input | UX — restaura resposta sem re-executar; privacidade por usuário |
 | D11 | Anonimização | Runtime no backend + toggle 🔒 + hash SHA-1 determinístico | LGPD sem duplicar base |
 | D12 | Arquitetura backend | Novo router no backend atual | Deploy unificado |
 | D13 | Modos de execução | **Docker e sem Docker** | Requisito explícito |
@@ -560,8 +560,8 @@ Scripts em `package.json`:
 **Critérios:** página renderiza; input desabilitado; POST direto → 403.
 
 ### US-07 — Reusar histórico
-**Como** admin, **quero** ver últimas 10 perguntas na lateral.
-**Critérios:** ordem reversa cronológica; click preenche input; botão "Limpar" zera.
+**Como** admin, **quero** ver as últimas 10 perguntas em um dropdown acima do campo de pergunta, com a resposta completa sendo restaurada ao clicar.
+**Critérios:** ordem reversa cronológica; click restaura resposta (tabela + gráfico + SQL + análise) sem nova chamada à API; botão "Limpar" zera.
 
 ### US-08 — Exportar
 **Como** admin, **quero** baixar tabela como CSV e gráfico como PNG.
@@ -659,14 +659,18 @@ Hash = SHA-1(valor) truncado a 6 chars
 ### 7.6 Fluxo de histórico
 
 ```
-Após resposta bem-sucedida:
-  localStorage["assistente:historico"].push({pergunta, timestamp})
+Após resposta bem-sucedida (sem erro_amigavel):
+  capRows(resposta) → clone com máx 100 linhas por TabelaVisualizacao
+  localStorage["assistente:historico"].push({pergunta, anonimizar, resposta_capada, timestamp})
   Trunca a 10 (FIFO)
+  Em QuotaExceededError → descarta entrada mais antiga e re-tenta;
+    se esgotar até 1 entrada e ainda falhar → removeItem + console.warn
   ↓
 Mount da página:
-  Lê localStorage e renderiza sidebar
+  Lê localStorage; filtra entradas sem campo `resposta` (migration silenciosa)
+  Renderiza dropdown acima do PromptInput
   ↓
-Click em item: preenche input (não reexecuta)
+Click em item: restaura {pergunta, anonimizar, resposta} no estado da página (sem chamada à API)
   ↓
 Botão "Limpar": localStorage.removeItem(...)
 ```
@@ -679,23 +683,24 @@ Botão "Limpar": localStorage.removeItem(...)
 
 **Layout (desktop):**
 ```
-┌──────────────────────────────────────────────────────────┐
-│ Navbar (link "Assistente")                                │
-├─────────┬────────────────────────────────────────────────┤
-│ Histór. │ [Toggle 🔒 Modo anônimo]                        │
-│ (10)    │ ┌────────────────────────────────────────────┐ │
-│ - P1    │ │ Digite sua pergunta...       [Enviar →]    │ │
-│ - P2    │ └────────────────────────────────────────────┘ │
-│ ...     │ Sugestões: [Top 10 produtos] [Pedidos/status] │
-│ [Limpar]│ ─── Resultado ───                              │
-│         │ [▸ Ver SQL]                                    │
-│         │ <Explicação>                                   │
-│         │ <Tabela>                 [⬇ CSV]               │
-│         │ <Gráfico>                [⬇ PNG]               │
-└─────────┴────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Navbar (link "Assistente")                                   │
+├─────────────────────────────────────────────────────────────┤
+│ [Toggle 🔒 Modo anônimo]                                     │
+│ [▾ Histórico (N)]  ← dropdown posicionado acima do input    │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Digite sua pergunta...                      [Enviar →]  │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ Sugestões: [Top 10 produtos] [Pedidos/status]                │
+│ ─── Resultado ───                                            │
+│ [▸ Ver SQL]                                                  │
+│ <Explicação>                                                 │
+│ <Tabela>                                        [⬇ CSV]     │
+│ <Gráfico>                                       [⬇ PNG]     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Mobile:** sidebar colapsável (hamburger); tabelas com scroll horizontal; `ResponsiveContainer` do Recharts.
+**Mobile:** coluna única; tabelas com scroll horizontal; `ResponsiveContainer` do Recharts.
 
 **Componentes (em `frontend/src/components/assistente/`):**
 
@@ -704,7 +709,7 @@ Botão "Limpar": localStorage.removeItem(...)
 | `AssistentePage.tsx` | Container principal (em `pages/`) | ≤ 150 |
 | `PromptInput.tsx` | Input + envio + validação de perfil | ≤ 80 |
 | `SampleQuestions.tsx` | Cards de perguntas sugeridas | ≤ 60 |
-| `HistorySidebar.tsx` | Lista localStorage | ≤ 100 |
+| `HistoryDropdown.tsx` | Dropdown com cache completo de respostas | ≤ 120 |
 | `AnonymizeToggle.tsx` | Switch 🔒 | ≤ 40 |
 | `ResultRenderer.tsx` | Orquestra `visualizacoes[]` | ≤ 80 |
 | `SQLViewer.tsx` | Colapsável "Ver SQL" | ≤ 50 |
@@ -1808,6 +1813,27 @@ Adicionada formatação de exibição em `DynamicTable` (ver §8.1.1 e D21):
 - Inteiros → sem casas decimais.
 - Nulos → `—`.
 - Contrato da API e dados exportados no CSV permanecem com os valores originais.
+
+---
+
+### §21.6 — Histórico como dropdown com cache de resposta completa
+
+Substituição de `HistorySidebar.tsx` (coluna lateral fixa) por `HistoryDropdown.tsx` (dropdown acima do input), e ampliação do schema persistido em `localStorage` para incluir a resposta completa do agente.
+
+**Motivação:** o sidebar lateral ocupava largura fixa (~224 px) sem oferecer valor proporcional — o clique num item apenas preenchia o input, forçando re-execução e consumindo nova chamada ao Gemini. O dropdown libera toda a largura para as visualizações e restaura gráfico + tabela + análise + SQL sem custo adicional.
+
+**Mudanças de schema (`localStorage`):**
+- Antes: `{ pergunta: string; timestamp: number }[]`
+- Depois: `{ pergunta: string; anonimizar: boolean; resposta: RespostaAssistente; timestamp: number }[]`
+- Migration: entradas sem campo `resposta` são descartadas silenciosamente na leitura.
+
+**Salvaguardas de quota:**
+1. Cap de 100 linhas por `TabelaVisualizacao` antes de persistir (`MAX_STORED_ROWS = 100`). A resposta em memória (sessão ativa) permanece completa.
+2. `localStorage.setItem` em try/catch: `QuotaExceededError` → descarta entrada mais antiga e re-tenta; se esgotar até 1 entrada e ainda falhar → `removeItem` + `console.warn`. Orçamento esperado: 10 × ~50 KB = ~500 KB (bem abaixo da quota mínima de 5 MB).
+
+**Arquivos modificados:** `useLocalHistory.ts`, `AssistentePage.tsx`
+**Arquivos novos:** `HistoryDropdown.tsx`
+**Arquivos removidos:** `HistorySidebar.tsx`
 
 ---
 
