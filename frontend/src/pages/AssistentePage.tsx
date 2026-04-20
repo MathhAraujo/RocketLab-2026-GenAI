@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useState } from 'react';
 import { perguntarAoAssistente } from '../api/assistenteApi';
+import { AnonimizacaoLegenda } from '../components/assistente/AnonimizacaoLegenda';
 import AnonymizeToggle from '../components/assistente/AnonymizeToggle';
 import { ErrorMessage } from '../components/assistente/ErrorMessage';
 import HistoryDropdown from '../components/assistente/HistoryDropdown';
@@ -21,7 +22,7 @@ export function AssistentePage(): JSX.Element {
   const { historico, adicionar, limpar } = useLocalHistory();
 
   const [pergunta, setPergunta] = useState('');
-  const [anonimizar, setAnonimizar] = useState(false);
+  const [anonimizar, setAnonimizar] = useState(true);
   const [resposta, setResposta] = useState<RespostaAssistente | null>(null);
   const [erroApi, setErroApi] = useState<ApiError | null>(null);
   const [carregando, setCarregando] = useState(false);
@@ -89,6 +90,10 @@ export function AssistentePage(): JSX.Element {
             <p className="text-sm text-gray-700 dark:text-gray-300">{resposta.explicacao}</p>
           )}
           <ResultRenderer visualizacoes={resposta.visualizacoes} isAdmin={isAdmin} />
+          {resposta.traducao_anonimizacao &&
+            Object.keys(resposta.traducao_anonimizacao).length > 0 && (
+              <AnonimizacaoLegenda traducao={resposta.traducao_anonimizacao} />
+            )}
         </section>
       )}
     </main>

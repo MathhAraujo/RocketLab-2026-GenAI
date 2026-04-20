@@ -16,6 +16,9 @@ from typing import Any, Final
 _HASH_LENGTH: Final[int] = 6
 _COMMENT_MAX_LENGTH: Final[int] = 40
 _NUMBER_PATTERN: Final[re.Pattern[str]] = re.compile(r"\d{3,}")
+_HASH_NAME_COLUMNS: Final[frozenset[str]] = frozenset(
+    {"nome_consumidor", "nome_vendedor", "autor_resposta"}
+)
 
 
 def _hash6(value: str) -> str:
@@ -55,6 +58,53 @@ PII_TRANSFORMERS: Final[dict[str, Callable[[Any], Any]]] = {
     "comentario": _redact_comment,
     "titulo_comentario": _redact_comment,
 }
+
+
+def anonymize_rows_with_mapping(
+    columns: list[str],
+    rows: list[list[Any]],
+    enabled: bool,
+) -> tuple[list[list[Any]], dict[str, str]]:
+    """Apply PII masking and return both the masked rows and a reverse mapping.
+
+    The mapping contains only hash-name columns (nome_consumidor, nome_vendedor,
+    autor_resposta) because those produce human-readable tokens that are useful
+    to display as a translation legend. CEP and comment masking are irreversible
+    and therefore excluded from the mapping.
+
+    Args:
+        columns: Ordered list of column names.
+        rows: List of rows where each row matches ``columns`` in order.
+        enabled: If ``False``, returns ``rows`` unchanged with an empty mapping.
+
+    Returns:
+        A tuple of (masked_rows, mapping) where mapping is
+        ``{anonymized_token: original_value}``.
+
+    Raises:
+        ValueError: If any row length does not match ``columns`` length.
+    """
+    if not enabled:
+        return rows, {}
+
+    transformers = [PII_TRANSFORMERS.get(col) for col in columns]
+    is_hash_col = [col in _HASH_NAME_COLUMNS for col in columns]
+    mapping: dict[str, str] = {}
+    anon_rows: list[list[Any]] = []
+
+    for row in rows:
+        new_row: list[Any] = []
+        for idx, (transformer, value) in enumerate(zip(transformers, row, strict=True)):
+            if transformer is not None:
+                masked = transformer(value)
+                if is_hash_col[idx] and value is not None and masked is not None:
+                    mapping[masked] = str(value)
+                new_row.append(masked)
+            else:
+                new_row.append(value)
+        anon_rows.append(new_row)
+
+    return anon_rows, mapping
 
 
 def anonymize_rows(

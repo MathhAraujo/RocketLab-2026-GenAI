@@ -23,6 +23,10 @@ _MSG_QUOTA_EXHAUSTED = (
     "Limite diário de requisições da IA atingido. "
     "O serviço será retomado amanhã. Tente novamente mais tarde."
 )
+_MSG_GEMINI_UNAVAILABLE = (
+    "O modelo de IA está temporariamente sobrecarregado. "
+    "Aguarde alguns instantes e tente novamente."
+)
 
 
 class GeminiNotConfiguredError(RuntimeError):
@@ -39,6 +43,10 @@ class GeminiRateLimitError(RuntimeError):
 
 class GeminiQuotaExhaustedError(RuntimeError):
     """Raised when the Gemini API daily quota is exhausted."""
+
+
+class GeminiUnavailableError(RuntimeError):
+    """Raised when the Gemini API returns 503 Service Unavailable (high demand)."""
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -85,3 +93,10 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         logger.error("Gemini quota diária esgotada: %s", exc)
         return JSONResponse(status_code=503, content={"detail": _MSG_QUOTA_EXHAUSTED})
+
+    @app.exception_handler(GeminiUnavailableError)
+    async def handle_gemini_unavailable(
+        request: Request, exc: GeminiUnavailableError
+    ) -> JSONResponse:
+        logger.warning("Gemini temporariamente indisponível (alta demanda): %s", exc)
+        return JSONResponse(status_code=503, content={"detail": _MSG_GEMINI_UNAVAILABLE})

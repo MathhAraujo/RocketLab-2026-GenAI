@@ -16,7 +16,12 @@ from sqlalchemy import Engine, text
 import app.agents.insight_agent as _insight_mod
 import app.agents.sql_agent as _sql_mod
 from app.agents.sql_agent import FormatacaoColuna, SqlGenerationResult
-from app.errors import GeminiNotConfiguredError, GeminiQuotaExhaustedError, GeminiRateLimitError
+from app.errors import (
+    GeminiNotConfiguredError,
+    GeminiQuotaExhaustedError,
+    GeminiRateLimitError,
+    GeminiUnavailableError,
+)
 from app.schemas.assistente import (
     FormatType,
     GraficoVisualizacao,
@@ -25,7 +30,7 @@ from app.schemas.assistente import (
     TabelaVisualizacao,
     Visualizacao,
 )
-from app.services.anonymizer import anonymize_rows
+from app.services.anonymizer import anonymize_rows_with_mapping
 from app.services.retry import MAX_ATTEMPTS, RetryContext
 from app.services.sql_guardrail import QueryNotAllowedError, validate_and_harden
 
@@ -206,18 +211,26 @@ async def _compor_resposta(
     pergunta: str,
     sql_result: SqlGenerationResult,
     columns: list[str],
-    rows: list[list[Any]],
+    raw_rows: list[list[Any]],
+    anon_rows: list[list[Any]],
+    mapping: dict[str, str],
     anonimizar: bool,
     tentativas: int,
 ) -> RespostaAssistente:
-    """Build the full RespostaAssistente, running the insight agent when applicable."""
+    """Build the full RespostaAssistente, running the insight agent when applicable.
+
+    Visualisations are built from *raw_rows* so the user sees real data.
+    The insight agent receives *anon_rows* so PII never reaches the LLM.
+    *mapping* is surfaced as ``traducao_anonimizacao`` so the user can
+    decode the tokens that appear in the insight text.
+    """
     explicacao: str | None = sql_result.explicacao_seca or None
     usou_insight = False
 
-    if _deve_chamar_insight(rows):
+    if _deve_chamar_insight(raw_rows):
         try:
             insight = await _insight_mod.gerar_insight(
-                pergunta, columns, rows[:_INSIGHT_MAX_ROWS], sql_result.explicacao_seca
+                pergunta, columns, anon_rows[:_INSIGHT_MAX_ROWS], sql_result.explicacao_seca
             )
             explicacao = insight.explicacao_analitica
             usou_insight = True
@@ -228,11 +241,12 @@ async def _compor_resposta(
         pergunta=pergunta,
         sql_gerado=sql_result.sql or None,
         explicacao=explicacao,
-        visualizacoes=_construir_visualizacoes(sql_result, columns, rows),
+        visualizacoes=_construir_visualizacoes(sql_result, columns, raw_rows),
         tentativas=tentativas,
+        traducao_anonimizacao=mapping if mapping else None,
         metadados=MetadadosResposta(
             anonimizado=anonimizar,
-            linhas_retornadas=len(rows),
+            linhas_retornadas=len(raw_rows),
             usou_insight=usou_insight,
         ),
     )
@@ -277,10 +291,17 @@ async def responder_pergunta(
 
             sql_attempted = sql_result.sql
             hardened = validate_and_harden(sql_result.sql)
-            columns, rows = await _executar_consulta(hardened, engine)
-            rows = anonymize_rows(columns, rows, enabled=anonimizar)
-            return await _compor_resposta(pergunta, sql_result, columns, rows, anonimizar, attempt)
-        except (GeminiNotConfiguredError, GeminiRateLimitError, GeminiQuotaExhaustedError):
+            columns, raw_rows = await _executar_consulta(hardened, engine)
+            anon_rows, mapping = anonymize_rows_with_mapping(columns, raw_rows, enabled=anonimizar)
+            return await _compor_resposta(
+                pergunta, sql_result, columns, raw_rows, anon_rows, mapping, anonimizar, attempt
+            )
+        except (
+            GeminiNotConfiguredError,
+            GeminiRateLimitError,
+            GeminiQuotaExhaustedError,
+            GeminiUnavailableError,
+        ):
             raise
         except Exception as exc:
             logger.warning("Tentativa %d/%d falhou: %s", attempt, MAX_ATTEMPTS, exc)

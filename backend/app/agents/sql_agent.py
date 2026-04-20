@@ -18,11 +18,17 @@ from pydantic_ai.providers.google import GoogleProvider
 
 from app.agents.schema_context import SCHEMA_BLOCK
 from app.config import settings
-from app.errors import GeminiNotConfiguredError, GeminiQuotaExhaustedError, GeminiRateLimitError
+from app.errors import (
+    GeminiNotConfiguredError,
+    GeminiQuotaExhaustedError,
+    GeminiRateLimitError,
+    GeminiUnavailableError,
+)
 from app.schemas.assistente import FormatType
 from app.services.retry import RetryContext
 
 _HTTP_RATE_LIMIT: Final[int] = 429
+_HTTP_SERVICE_UNAVAILABLE: Final[int] = 503
 
 _SYSTEM_PROMPT: Final[str] = f"""
 Você é um assistente analítico especializado em consultas de dados de um e-commerce.
@@ -139,6 +145,8 @@ def _classify_http_error(exc: ModelHTTPError) -> NoReturn:
         if "quota" in body_str:
             raise GeminiQuotaExhaustedError(str(exc)) from exc
         raise GeminiRateLimitError(str(exc)) from exc
+    if exc.status_code == _HTTP_SERVICE_UNAVAILABLE:
+        raise GeminiUnavailableError(str(exc)) from exc
     raise exc
 
 
@@ -152,6 +160,8 @@ def _classify_google_error(exc: GoogleAPIError) -> NoReturn:
         if "quota" in body_str:
             raise GeminiQuotaExhaustedError(str(exc)) from exc
         raise GeminiRateLimitError(str(exc)) from exc
+    if exc.code == _HTTP_SERVICE_UNAVAILABLE:
+        raise GeminiUnavailableError(str(exc)) from exc
     raise exc
 
 

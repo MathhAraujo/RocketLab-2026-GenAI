@@ -15,7 +15,7 @@ class PerguntaRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     pergunta: str = Field(min_length=3, max_length=500)
-    anonimizar: bool = False
+    anonimizar: bool = True
 
 
 class TabelaVisualizacao(BaseModel):
@@ -60,4 +60,5 @@ class RespostaAssistente(BaseModel):
     visualizacoes: list[Visualizacao] = []
     tentativas: int = 1
     erro_amigavel: str | None = None
+    traducao_anonimizacao: dict[str, str] | None = None
     metadados: MetadadosResposta

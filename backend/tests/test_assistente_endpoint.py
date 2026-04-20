@@ -162,7 +162,7 @@ def test_tabela_omitted_when_user_asks_only_chart(
 # ---------------------------------------------------------------------------
 
 
-def test_anonimizacao_flag_masks_pii_fields(
+def test_anonimizacao_flag_sets_anonimizado_metadata(
     admin_client: TestClient,
     admin_token: str,
     monkeypatch: pytest.MonkeyPatch,
@@ -184,10 +184,50 @@ def test_anonimizacao_flag_masks_pii_fields(
     r = admin_client.post(
         _URL, json={"pergunta": "Lista consumidores", "anonimizar": True}, headers=headers
     )
-    tabelas = [v for v in r.json()["visualizacoes"] if v["tipo"] == "tabela"]
+    body = r.json()
+    assert body["metadados"]["anonimizado"] is True
+    assert "traducao_anonimizacao" in body
+
+
+def test_anonimizacao_mapping_returned_when_pii_present(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_insight_agent: InsightResult,
+) -> None:
+    """Visualizações mostram dados reais; mapeamento expõe a tradução token→real."""
+    pii_result = SqlGenerationResult(
+        sql="SELECT nome_consumidor FROM consumidores LIMIT 1000",
+        explicacao_seca="Lista de consumidores.",
+        sugestao_grafico="none",
+        forcar_tabela=True,
+        eh_off_topic=False,
+    )
+    real_names = ["Milena Borges", "Lucas Faria"]
+
+    async def _fake_sql(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        return pii_result
+
+    async def _fake_query(sql: str, engine: Any) -> tuple[list[str], list[list[Any]]]:
+        return ["nome_consumidor"], [[name] for name in real_names]
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake_sql)
+    monkeypatch.setattr("app.services.assistente_service._executar_consulta", _fake_query)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    r = admin_client.post(
+        _URL, json={"pergunta": "lista consumidores", "anonimizar": True}, headers=headers
+    )
+    body = r.json()
+    assert r.status_code == 200
+    # Tabela exibe dados reais (não anonimizados)
+    tabelas = [v for v in body["visualizacoes"] if v["tipo"] == "tabela"]
     assert tabelas, "Esperava tabela na resposta"
-    for row in tabelas[0]["linhas"]:
-        assert not any(str(cell).startswith("Consumidor Teste") for cell in row)
+    cell_values = [row[0] for row in tabelas[0]["linhas"]]
+    assert set(cell_values) == set(real_names)
+    # Mapeamento de tradução presente e correto
+    mapping = body["traducao_anonimizacao"]
+    assert mapping is not None
+    assert set(mapping.values()) == set(real_names)
 
 
 def test_anonimizacao_off_preserves_original_data(
@@ -198,7 +238,21 @@ def test_anonimizacao_off_preserves_original_data(
 ) -> None:
     headers = {"Authorization": f"Bearer {admin_token}"}
     r = admin_client.post(_URL, json={"pergunta": _PERGUNTA, "anonimizar": False}, headers=headers)
-    assert r.json()["metadados"]["anonimizado"] is False
+    body = r.json()
+    assert body["metadados"]["anonimizado"] is False
+    assert body["traducao_anonimizacao"] is None
+
+
+def test_anonimizacao_default_is_true(
+    admin_client: TestClient,
+    admin_token: str,
+    mock_sql_agent: SqlGenerationResult,
+    mock_insight_agent: InsightResult,
+) -> None:
+    """Omitir anonimizar no payload deve usar True como padrão."""
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    r = admin_client.post(_URL, json={"pergunta": _PERGUNTA}, headers=headers)
+    assert r.json()["metadados"]["anonimizado"] is True
 
 
 # ---------------------------------------------------------------------------
@@ -303,6 +357,23 @@ def test_missing_google_api_key_returns_503(
     headers = {"Authorization": f"Bearer {admin_token}"}
     r = admin_client.post(_URL, json={"pergunta": _PERGUNTA}, headers=headers)
     assert r.status_code == 503
+
+
+def test_gemini_unavailable_returns_503_with_specific_message(
+    admin_client: TestClient,
+    admin_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.errors import GeminiUnavailableError
+
+    async def _fake(*args: Any, **kwargs: Any) -> SqlGenerationResult:
+        raise GeminiUnavailableError("503 UNAVAILABLE simulado")
+
+    monkeypatch.setattr("app.agents.sql_agent.gerar_sql", _fake)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    r = admin_client.post(_URL, json={"pergunta": _PERGUNTA}, headers=headers)
+    assert r.status_code == 503
+    assert "sobrecarregado" in r.json()["detail"].lower()
 
 
 # ---------------------------------------------------------------------------

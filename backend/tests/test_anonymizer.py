@@ -10,7 +10,7 @@ import hashlib
 
 import pytest
 
-from app.services.anonymizer import PII_TRANSFORMERS, anonymize_rows
+from app.services.anonymizer import PII_TRANSFORMERS, anonymize_rows, anonymize_rows_with_mapping
 
 _COLUMNS_CONSUMIDOR = ["id_pedido", "nome_consumidor", "valor_total"]
 _COLUMNS_VENDEDOR = ["id_pedido", "nome_vendedor", "valor_total"]
@@ -178,3 +178,109 @@ def test_mismatched_row_length_raises() -> None:
 
     with pytest.raises(ValueError):
         anonymize_rows(columns, rows_too_short, enabled=True)
+
+
+# ---------------------------------------------------------------------------
+# anonymize_rows_with_mapping — disabled mode
+# ---------------------------------------------------------------------------
+
+
+def test_mapping_returns_empty_when_disabled() -> None:
+    rows = [["1", "João Silva", 99.9]]
+
+    _, mapping = anonymize_rows_with_mapping(_COLUMNS_CONSUMIDOR, rows, enabled=False)
+
+    assert mapping == {}
+
+
+def test_mapping_rows_unchanged_when_disabled() -> None:
+    rows = [["1", "João Silva", 99.9]]
+
+    anon_rows, _ = anonymize_rows_with_mapping(_COLUMNS_CONSUMIDOR, rows, enabled=False)
+
+    assert anon_rows == rows
+
+
+# ---------------------------------------------------------------------------
+# anonymize_rows_with_mapping — mapping capture
+# ---------------------------------------------------------------------------
+
+
+def test_mapping_captures_nome_consumidor() -> None:
+    name = "Maria Souza"
+    rows = [["1", name, 50.0]]
+
+    anon_rows, mapping = anonymize_rows_with_mapping(_COLUMNS_CONSUMIDOR, rows, enabled=True)
+
+    token = anon_rows[0][1]
+    assert token.startswith("Consumidor_")
+    assert mapping == {token: name}
+
+
+def test_mapping_captures_nome_vendedor() -> None:
+    name = "Carlos Lima"
+    columns = ["id_pedido", "nome_vendedor", "valor_total"]
+    rows = [["1", name, 200.0]]
+
+    anon_rows, mapping = anonymize_rows_with_mapping(columns, rows, enabled=True)
+
+    token = anon_rows[0][1]
+    assert token.startswith("Vendedor_")
+    assert mapping == {token: name}
+
+
+def test_mapping_does_not_capture_cep() -> None:
+    columns = ["prefixo_cep"]
+    rows = [["01310"]]
+
+    _, mapping = anonymize_rows_with_mapping(columns, rows, enabled=True)
+
+    assert mapping == {}
+
+
+def test_mapping_does_not_capture_comentario() -> None:
+    columns = ["comentario"]
+    rows = [["Pedido chegou rápido"]]
+
+    _, mapping = anonymize_rows_with_mapping(columns, rows, enabled=True)
+
+    assert mapping == {}
+
+
+def test_mapping_deduplicates_same_name() -> None:
+    name = "João Silva"
+    rows = [["1", name, 10.0], ["2", name, 20.0]]
+
+    _, mapping = anonymize_rows_with_mapping(_COLUMNS_CONSUMIDOR, rows, enabled=True)
+
+    assert len(mapping) == 1
+
+
+def test_mapping_skips_null_values() -> None:
+    rows = [["1", None, 10.0]]
+
+    _, mapping = anonymize_rows_with_mapping(_COLUMNS_CONSUMIDOR, rows, enabled=True)
+
+    assert mapping == {}
+
+
+# ---------------------------------------------------------------------------
+# anonymize_rows_with_mapping — anon output matches anonymize_rows
+# ---------------------------------------------------------------------------
+
+
+def test_mapping_anon_rows_match_anonymize_rows() -> None:
+    rows = [["1", "Test Name", 10.0], ["2", "Other Name", 20.0]]
+
+    anon_rows, _ = anonymize_rows_with_mapping(_COLUMNS_CONSUMIDOR, rows, enabled=True)
+    expected = anonymize_rows(_COLUMNS_CONSUMIDOR, rows, enabled=True)
+
+    assert anon_rows == expected
+
+
+def test_mapping_mismatched_row_length_raises() -> None:
+    columns = ["nome_consumidor", "valor_total"]
+    rows_too_short = [["João Silva"]]
+
+    with pytest.raises(ValueError):
+        anonymize_rows_with_mapping(columns, rows_too_short, enabled=True)

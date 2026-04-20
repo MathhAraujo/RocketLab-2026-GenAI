@@ -40,6 +40,7 @@ type RespostaAssistente = {
   visualizacoes: Visualizacao[];
   tentativas: number;
   erro_amigavel: string | null;
+  traducao_anonimizacao: Record<string, string> | null;
   metadados: MetadadosResposta;
 };
 
