@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from typing import Any
@@ -15,6 +16,11 @@ from app.config import settings
 from app.errors import register_exception_handlers
 from app.routers import assistente, auth, produtos
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+
 
 def custom_key_builder(
     func: Callable[..., Any],
@@ -25,8 +31,12 @@ def custom_key_builder(
     **kwargs: object,
 ) -> str:
     """Construir chave de cache excluindo parâmetros de sessão e usuário."""
-    args_str = ",".join(f"{k}={v}" for k, v in kwargs.items() if k not in ("db", "current_user"))
-    return f"{FastAPICache.get_prefix()}:{namespace}:{func.__module__}:{func.__name__}:{args_str}"
+    kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items() if k not in ("db", "current_user"))
+    args_str = ",".join(str(a) for a in args)
+    return (
+        f"{FastAPICache.get_prefix()}:{namespace}:{func.__module__}:{func.__name__}"
+        f":{args_str}:{kwargs_str}"
+    )
 
 
 @asynccontextmanager
@@ -64,6 +74,6 @@ register_exception_handlers(app)
     summary="Health Check",
     description="Verifica o status da API e se está rodando corretamente.",
 )
-def health() -> dict[str, str]:
+async def health() -> dict[str, str]:
     """Retornar status de saúde da API."""
     return {"status": "ok", "message": "API rodando com sucesso!"}

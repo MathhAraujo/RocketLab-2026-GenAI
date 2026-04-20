@@ -18,7 +18,7 @@ type UseLocalHistoryResult = {
   limpar: () => void;
 };
 
-function _capTabela(vis: Visualizacao): Visualizacao {
+function capTabela(vis: Visualizacao): Visualizacao {
   if (vis.tipo !== 'tabela') return vis;
   const tabela = vis as TabelaVisualizacao;
   return tabela.linhas.length <= MAX_STORED_ROWS
@@ -26,11 +26,11 @@ function _capTabela(vis: Visualizacao): Visualizacao {
     : { ...tabela, linhas: tabela.linhas.slice(0, MAX_STORED_ROWS) };
 }
 
-function _capRows(resposta: RespostaAssistente): RespostaAssistente {
-  return { ...resposta, visualizacoes: resposta.visualizacoes.map(_capTabela) };
+function capRows(resposta: RespostaAssistente): RespostaAssistente {
+  return { ...resposta, visualizacoes: resposta.visualizacoes.map(capTabela) };
 }
 
-function _isEntradaValida(value: unknown): value is EntradaHistorico {
+function isEntradaValida(value: unknown): value is EntradaHistorico {
   if (typeof value !== 'object' || value === null) return false;
   const obj = value as Record<string, unknown>;
   return (
@@ -42,19 +42,19 @@ function _isEntradaValida(value: unknown): value is EntradaHistorico {
   );
 }
 
-function _loadFromStorage(): EntradaHistorico[] {
+function loadFromStorage(): EntradaHistorico[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(_isEntradaValida);
+    return parsed.filter(isEntradaValida);
   } catch {
     return [];
   }
 }
 
-function _saveToStorage(entries: EntradaHistorico[]): EntradaHistorico[] {
+function saveToStorage(entries: EntradaHistorico[]): EntradaHistorico[] {
   let current = entries;
   while (current.length > 0) {
     try {
@@ -75,10 +75,10 @@ function _saveToStorage(entries: EntradaHistorico[]): EntradaHistorico[] {
 }
 
 export function useLocalHistory(): UseLocalHistoryResult {
-  const [historico, setHistorico] = useState<EntradaHistorico[]>(_loadFromStorage);
+  const [historico, setHistorico] = useState<EntradaHistorico[]>(loadFromStorage);
 
   useEffect(() => {
-    const saved = _saveToStorage(historico);
+    const saved = saveToStorage(historico);
     if (saved.length !== historico.length) setHistorico(saved);
   }, [historico]);
 
@@ -89,7 +89,7 @@ export function useLocalHistory(): UseLocalHistoryResult {
         const entrada: EntradaHistorico = {
           pergunta,
           anonimizar,
-          resposta: _capRows(resposta),
+          resposta: capRows(resposta),
           timestamp: Date.now(),
         };
         return [entrada, ...semDuplicata].slice(0, MAX_HISTORICO);

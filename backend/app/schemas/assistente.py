@@ -57,7 +57,7 @@ class RespostaAssistente(BaseModel):
     pergunta: str
     sql_gerado: str | None = None
     explicacao: str | None = None
-    visualizacoes: list[Visualizacao] = []
+    visualizacoes: list[Visualizacao] = Field(default_factory=list)
     tentativas: int = 1
     erro_amigavel: str | None = None
     traducao_anonimizacao: dict[str, str] | None = None

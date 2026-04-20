@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import type { TabelaVisualizacao } from '../../types/assistente';
 import { formatCell, sanitizeLabel } from '../../utils/formatters';
+import { toSlug } from '../../utils/slug';
 
 const TABLE_PAGE_SIZE = 10;
 
@@ -24,15 +25,6 @@ function buildCsv(colunas: string[], linhas: unknown[][]): string {
   const header = colunas.map(escapeCsvCell).join(',');
   const rows = linhas.map((row) => row.map(escapeCsvCell).join(','));
   return [header, ...rows].join('\n');
-}
-
-function toSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }
 
 function downloadCsv(content: string, filename: string): void {

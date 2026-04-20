@@ -2,17 +2,29 @@
 
 from __future__ import annotations
 
+import logging
 import secrets
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+
+def _generate_ephemeral_jwt_secret() -> str:
+    """Gerar um JWT_SECRET aleatório e avisar que ele invalida tokens a cada restart."""
+    logger.warning(
+        "JWT_SECRET não configurado — gerando chave efêmera. Tokens serão "
+        "invalidados a cada reinício. Defina JWT_SECRET no .env para persistir."
+    )
+    return secrets.token_hex(32)
 
 
 class Settings(BaseSettings):
     """Configuração centralizada lida de variáveis de ambiente e arquivo .env."""
 
     DATABASE_URL: str = "sqlite:///./database.db"
-    JWT_SECRET: str = Field(default_factory=lambda: secrets.token_hex(32))
+    JWT_SECRET: str = Field(default_factory=_generate_ephemeral_jwt_secret)
     ALLOWED_ORIGINS: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     GOOGLE_API_KEY: str | None = None
 

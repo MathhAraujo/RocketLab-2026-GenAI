@@ -13,9 +13,8 @@ from google.genai.errors import APIError as GoogleAPIError
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.exceptions import ModelHTTPError
-from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.providers.google import GoogleProvider
 
+from app.agents._model_factory import build_gemini_model
 from app.agents.schema_context import SCHEMA_BLOCK
 from app.config import settings
 from app.errors import (
@@ -125,13 +124,11 @@ class SqlGenerationResult(BaseModel):
 
 
 def _make_agent() -> Agent[None, SqlGenerationResult]:
-    model: GoogleModel | str = (
-        GoogleModel("gemini-2.5-flash", provider=GoogleProvider(api_key=settings.GOOGLE_API_KEY))
-        if settings.GOOGLE_API_KEY
-        else "google-gla:gemini-2.5-flash"
-    )
     return Agent(
-        model, output_type=SqlGenerationResult, instructions=_SYSTEM_PROMPT, defer_model_check=True
+        build_gemini_model(),
+        output_type=SqlGenerationResult,
+        instructions=_SYSTEM_PROMPT,
+        defer_model_check=True,
     )
 
 

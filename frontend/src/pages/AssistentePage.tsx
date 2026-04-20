@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { perguntarAoAssistente } from '../api/assistenteApi';
 import { AnonimizacaoLegenda } from '../components/assistente/AnonimizacaoLegenda';
 import AnonymizeToggle from '../components/assistente/AnonymizeToggle';
@@ -16,6 +16,9 @@ import type { RespostaAssistente } from '../types/assistente';
 
 type ApiError = { mensagem: string; variant: 'error' | 'warning' };
 
+const MSG_SEM_PERMISSAO = 'Apenas administradores podem utilizar o assistente.';
+const MSG_GENERICO = 'Não foi possível conectar ao servidor. Tente novamente.';
+
 export function AssistentePage(): JSX.Element {
   const { user } = useAuth();
   const isAdmin = user?.is_admin ?? false;
@@ -27,34 +30,54 @@ export function AssistentePage(): JSX.Element {
   const [erroApi, setErroApi] = useState<ApiError | null>(null);
   const [carregando, setCarregando] = useState(false);
 
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  const cancelarEmVoo = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+  };
+
   const handleSubmit = async () => {
     if (!pergunta.trim() || carregando) return;
+    cancelarEmVoo();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setCarregando(true);
     setErroApi(null);
     setResposta(null);
     try {
-      const resultado = await perguntarAoAssistente({ pergunta, anonimizar });
+      const resultado = await perguntarAoAssistente({ pergunta, anonimizar }, controller.signal);
+      if (controller.signal.aborted) return;
       if (!resultado.erro_amigavel) adicionar(pergunta, anonimizar, resultado);
       setResposta(resultado);
     } catch (err) {
+      if (axios.isCancel(err) || controller.signal.aborted) return;
       if (axios.isAxiosError<{ detail?: string }>(err) && err.response) {
-        setErroApi({
-          mensagem:
-            err.response.data?.detail ?? 'Não foi possível conectar ao servidor. Tente novamente.',
-          variant: err.response.status === 429 ? 'warning' : 'error',
-        });
+        const status = err.response.status;
+        const detail = err.response.data?.detail;
+        if (status === 403) {
+          setErroApi({ mensagem: detail ?? MSG_SEM_PERMISSAO, variant: 'error' });
+        } else {
+          setErroApi({
+            mensagem: detail ?? MSG_GENERICO,
+            variant: status === 429 ? 'warning' : 'error',
+          });
+        }
       } else {
-        setErroApi({
-          mensagem: 'Não foi possível conectar ao servidor. Tente novamente.',
-          variant: 'error',
-        });
+        setErroApi({ mensagem: MSG_GENERICO, variant: 'error' });
       }
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setCarregando(false);
     }
   };
 
   const handlePickHistorico = (entrada: EntradaHistorico) => {
+    cancelarEmVoo();
+    setCarregando(false);
     setPergunta(entrada.pergunta);
     setAnonimizar(entrada.anonimizar);
     setResposta(entrada.resposta);

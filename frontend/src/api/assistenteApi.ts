@@ -7,8 +7,11 @@ type SaudeResponse = {
   banco_acessivel: boolean;
 };
 
-export async function perguntarAoAssistente(req: PerguntaRequest): Promise<RespostaAssistente> {
-  const response = await api.post<RespostaAssistente>('/assistente/perguntar', req);
+export async function perguntarAoAssistente(
+  req: PerguntaRequest,
+  signal?: AbortSignal,
+): Promise<RespostaAssistente> {
+  const response = await api.post<RespostaAssistente>('/assistente/perguntar', req, { signal });
   return response.data;
 }
 

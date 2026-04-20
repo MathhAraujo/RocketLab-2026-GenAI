@@ -76,7 +76,7 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(AgentFailureError)
     async def handle_agent_failure(request: Request, exc: AgentFailureError) -> JSONResponse:
-        logger.exception("Falha irrecuperável no agente após retentativas: %s", exc)
+        logger.exception("Falha irrecuperável no agente após retentativas")
         return JSONResponse(
             status_code=500,
             content={"detail": _MSG_AGENT_FAILURE},

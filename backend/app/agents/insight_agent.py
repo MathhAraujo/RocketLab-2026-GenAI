@@ -11,10 +11,8 @@ from typing import Any, Final
 
 from pydantic import BaseModel
 from pydantic_ai import Agent
-from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.providers.google import GoogleProvider
 
-from app.config import settings
+from app.agents._model_factory import build_gemini_model
 
 _SYSTEM_PROMPT: Final[str] = """
 Você analisa resultados tabulares de consultas SQL e produz um comentário analítico curto em pt-BR.
@@ -53,13 +51,11 @@ class InsightResult(BaseModel):
 
 
 def _make_agent() -> Agent[None, InsightResult]:
-    model: GoogleModel | str = (
-        GoogleModel("gemini-2.5-flash", provider=GoogleProvider(api_key=settings.GOOGLE_API_KEY))
-        if settings.GOOGLE_API_KEY
-        else "google-gla:gemini-2.5-flash"
-    )
     return Agent(
-        model, output_type=InsightResult, instructions=_SYSTEM_PROMPT, defer_model_check=True
+        build_gemini_model(),
+        output_type=InsightResult,
+        instructions=_SYSTEM_PROMPT,
+        defer_model_check=True,
     )
 
 

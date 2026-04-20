@@ -2,6 +2,7 @@ import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 
 import type { GraficoVisualizacao } from '../../types/assistente';
+import { toSlug } from '../../utils/slug';
 import { ChartArea } from './charts/ChartArea';
 import { ChartBar } from './charts/ChartBar';
 import { ChartLine } from './charts/ChartLine';
@@ -15,18 +16,9 @@ type DynamicChartProps = {
   isAdmin: boolean;
 };
 
-function toSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 export function DynamicChart({ visualizacao, isAdmin }: DynamicChartProps): JSX.Element {
   const { subtipo, titulo, eixo_x, eixo_y, dados } = visualizacao;
-  const props = { dados, eixo_x, eixo_y };
+  const chartProps = { dados, eixo_x, eixo_y };
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPng = async () => {
@@ -61,11 +53,11 @@ export function DynamicChart({ visualizacao, isAdmin }: DynamicChartProps): JSX.
         )}
       </div>
       <div ref={containerRef} className="w-full">
-        {subtipo === 'bar' && <ChartBar {...props} />}
-        {subtipo === 'line' && <ChartLine {...props} />}
-        {subtipo === 'pie' && <ChartPie {...props} />}
-        {subtipo === 'area' && <ChartArea {...props} />}
-        {subtipo === 'scatter' && <ChartScatter {...props} />}
+        {subtipo === 'bar' && <ChartBar {...chartProps} />}
+        {subtipo === 'line' && <ChartLine {...chartProps} />}
+        {subtipo === 'pie' && <ChartPie {...chartProps} />}
+        {subtipo === 'area' && <ChartArea {...chartProps} />}
+        {subtipo === 'scatter' && <ChartScatter {...chartProps} />}
       </div>
     </div>
   );
