@@ -20,16 +20,18 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     # SQLite não suporta ADD COLUMN com FK nem CREATE INDEX em tabela existente para constraints;
     # recriamos as tabelas para adicionar indexes nas colunas FK de pedidos e itens_pedidos.
-    op.drop_index('ix_avaliacoes_pedidos_id_pedido', table_name='avaliacoes_pedidos')
-    op.drop_table('avaliacoes_pedidos')
-    op.drop_index('ix_usuarios_username', table_name='usuarios')
-    op.drop_table('usuarios')
-    op.drop_index('ix_itens_pedidos_id_produto', table_name='itens_pedidos')
-    op.drop_table('itens_pedidos')
-    op.drop_table('pedidos')
-    op.drop_table('consumidores')
-    op.drop_table('vendedores')
-    op.drop_table('produtos')
+    # Usamos DROP IF EXISTS porque indexes anteriores podem ter nomes ligeiramente diferentes
+    # dependendo do estado do banco na instalação.
+    op.execute("DROP INDEX IF EXISTS ix_avaliacoes_pedidos_id_pedido")
+    op.execute("DROP TABLE IF EXISTS avaliacoes_pedidos")
+    op.execute("DROP INDEX IF EXISTS ix_usuarios_username")
+    op.execute("DROP TABLE IF EXISTS usuarios")
+    op.execute("DROP INDEX IF EXISTS ix_itens_pedidos_id_produto")
+    op.execute("DROP TABLE IF EXISTS itens_pedidos")
+    op.execute("DROP TABLE IF EXISTS pedidos")
+    op.execute("DROP TABLE IF EXISTS consumidores")
+    op.execute("DROP TABLE IF EXISTS vendedores")
+    op.execute("DROP TABLE IF EXISTS produtos")
 
     op.create_table(
         'produtos',
