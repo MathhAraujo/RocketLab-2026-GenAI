@@ -1,270 +1,24 @@
-# Sistema de Gerenciamento de E-Commerce
+# Atividade GenAI — Rocket Lab 2026
 
-Aplicacao fullstack desenvolvida para o Rocket Lab 2026. O sistema permite que gerentes de loja visualizem o catalogo de produtos, consultem estatisticas de vendas, leiam e respondam avaliacoes de consumidores, e gerenciem o cadastro de produtos com controle de acesso por perfil.
+Entrega da **Atividade GenAI** do Rocket Lab 2026: agente **Text-to-SQL** capaz de responder perguntas em linguagem natural sobre o banco de dados de um e-commerce, gerando tabelas, gráficos e comentários analíticos.
 
-## Stack
+> Este documento cobre apenas o que é específico desta entrega. A documentação da aplicação fullstack de base (catálogo, autenticação, estrutura geral, Docker, acesso pelo celular, variáveis de ambiente do backend/frontend, execução de testes) está em [`README-DEV.md`](./README-DEV.md) — leia-o antes.
 
-| Camada | Tecnologia |
+---
+
+## 1. Aderência aos requisitos da atividade
+
+| Requisito do enunciado | Entrega |
 |---|---|
-| Frontend | Vite + React + TypeScript + Tailwind CSS |
-| Backend | FastAPI (Python 3.11+) |
-| Banco de dados | SQLite via SQLAlchemy 2.0 |
-| Migrations | Alembic |
-| Autenticacao | JWT (Bearer token, 7 dias) |
-| Cache | fastapi-cache2 (InMemory, TTL 60 s) |
-| Testes | pytest + httpx |
-
-## Funcionalidades
-
-**Requisitos obrigatorios**
-- Catalogo paginado de produtos com informacoes detalhadas (nome, categoria, dimensoes, peso)
-- Busca por nome e/ou categoria com debounce no frontend
-- Pagina de detalhes com estatisticas de vendas e avaliacoes dos consumidores
-- Media de avaliacoes com distribuicao por estrelas
-- Criacao, edicao e remocao de produtos (restrito a administradores)
-
-**Funcionalidades extras**
-- Autenticacao com JWT; perfis `admin` e `viewer`
-- Paginacao via backend com controle de pagina e itens por pagina
-- Filtros de busca por categoria e ordenacao por nome, preco, avaliacoes ou vendas
-- Cache de consultas no backend (invalida automaticamente em operacoes de escrita)
-- Resposta e exclusao de resposta a avaliacoes de consumidores (restrito a administradores)
-- Responsividade para dispositivos moveis
-- Testes automatizados (autenticacao, CRUD de produtos, respostas a avaliacoes)
-- Documentacao interativa via Swagger UI (`/docs`) e ReDoc (`/redoc`)
-- Containerizacao com Docker e Docker Compose (backend e frontend prontos para producao)
-
-## Estrutura do projeto
-
-```
-.
-├── backend/
-│   ├── alembic/          # Migrations do banco de dados
-│   ├── app/
-│   │   ├── models/       # Modelos SQLAlchemy
-│   │   ├── routers/      # Endpoints FastAPI (auth, produtos)
-│   │   ├── schemas/      # Schemas Pydantic
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── dependencies.py
-│   │   ├── main.py
-│   │   └── security.py
-│   ├── data/             # Arquivos CSV para popular o banco
-│   ├── tests/            # Suite de testes pytest
-│   ├── seed.py           # Script de populacao do banco
-│   ├── entrypoint.sh     # Script de inicializacao do container
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── api/          # Clientes HTTP (axios)
-│   │   ├── components/   # Componentes React reutilizaveis
-│   │   ├── contexts/     # Contextos de autenticacao e tema
-│   │   ├── hooks/        # Hooks customizados
-│   │   ├── pages/        # Paginas da aplicacao
-│   │   ├── types/        # Tipos TypeScript
-│   │   └── utils/
-│   └── vite.config.ts
-└── docker-compose.yml
-```
-
-## Executando com Docker
-
-### Pre-requisitos
-
-- Docker e Docker Compose instalados
-
-### Passos
-
-```bash
-# 1. Clone o repositorio
-git clone <url-do-repositorio>
-cd RocketLab-2026-Dev
-
-# 2. Suba os containers
-docker compose up --build
-```
-
-O container do backend executa automaticamente as migrations (`alembic upgrade head`) e popula o banco com os dados dos arquivos CSV antes de iniciar o servidor.
-
-| Servico | URL |
-|---|---|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8000 |
-| Swagger UI | http://localhost:8000/docs |
-| ReDoc | http://localhost:8000/redoc |
-
-Para parar os containers:
-
-```bash
-docker compose down
-```
-
-## Executando sem Docker
-
-### Pre-requisitos
-
-- Python 3.11+
-- Node.js 20+
-
-### Backend
-
-```bash
-cd backend
-
-# Crie e ative o ambiente virtual
-python -m venv .venv
-
-# Linux / macOS
-source .venv/bin/activate
-
-# Windows
-.venv\Scripts\activate
-
-# Instale as dependencias
-pip install -r requirements.txt
-
-# Crie o arquivo de variaveis de ambiente
-cp .env.example .env
-
-# Execute as migrations
-alembic upgrade head
-
-# Popule o banco de dados
-python seed.py
-
-# Inicie o servidor
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-A API estara disponivel em `http://localhost:8000`.
-
-### Frontend
-
-Em um novo terminal:
-
-```bash
-cd frontend
-
-# Instale as dependencias
-npm install
-
-# Inicie o servidor de desenvolvimento
-npm run dev
-```
-
-O frontend estara disponivel em `http://localhost:5173`.
-
-> A variavel de ambiente `VITE_API_URL` define o endereco base da API. O valor padrao e `http://localhost:8000/api` e funciona para uso local. So e necessario alterar se o backend estiver rodando em um host ou porta diferente.
-
-## Primeiro acesso
-
-Ao acessar o sistema pela primeira vez, clique em "Criar uma nova conta" na tela de login. A tela de cadastro permite escolher o tipo de acesso diretamente: **Visualizador** (somente leitura) ou **Administrador** (criacao, edicao, exclusao de produtos e resposta a avaliacoes).
-
-## Variaveis de ambiente
-
-### Backend
-
-| Variavel | Padrao | Descricao |
-|---|---|---|
-| `DATABASE_URL` | `sqlite:///./database.db` | URL de conexao com o banco SQLite |
-| `JWT_SECRET` | *(gerado automaticamente)* | Chave secreta para assinatura dos tokens JWT |
-| `ALLOWED_ORIGINS` | `["http://localhost:5173","http://127.0.0.1:5173"]` | Origens permitidas pelo CORS |
-| `GOOGLE_API_KEY` | *(obrigatório para o Assistente)* | Chave da API Gemini; sem ela `/api/assistente/perguntar` retorna 503 |
-
-Em producao, defina `JWT_SECRET` com um valor longo, aleatorio e unico. Sem um arquivo `.env` contendo `JWT_SECRET`, uma chave aleatoria e gerada a cada reinicio do servidor, invalidando todos os tokens existentes. Um arquivo `backend/.env.example` com valores de referencia esta disponivel no repositorio.
-
-### Frontend
-
-| Variavel | Padrao | Descricao |
-|---|---|---|
-| `VITE_API_URL` | `http://localhost:8000/api` | Endereco base da API do backend |
-
-## Acesso pelo celular na mesma rede
-
-Para acessar a aplicacao de um dispositivo movel conectado ao mesmo Wi-Fi da maquina host, siga os passos abaixo.
-
-> O cliente HTTP do frontend detecta automaticamente o hostname pelo qual a pagina foi carregada e substitui `localhost` pelo IP real da maquina em todas as requisicoes. Nao e necessario configurar `VITE_API_URL` para acesso na rede local.
-
-### 1. Descubra o IP local da maquina
-
-**Windows**
-```bash
-ipconfig
-# Procure por "Endereco IPv4" na interface Wi-Fi ou Ethernet. Exemplo: 192.168.1.100
-```
-
-**Linux / macOS**
-```bash
-ip addr show   # ou: hostname -I
-```
-
-### 2. Libere o CORS no backend
-
-Adicione a origem do celular na variavel `ALLOWED_ORIGINS` do arquivo `backend/.env`. Substitua `192.168.1.100` pelo IP real da sua maquina:
-
-```dotenv
-ALLOWED_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","http://192.168.1.100:5173"]
-```
-
-### 3. Inicie os servicos
-
-**Com Docker**
-
-O `docker-compose.yml` padrao vincula as portas apenas ao `127.0.0.1`, bloqueando o acesso pela rede local. Para liberar, edite o arquivo e troque o bind das portas:
-
-```yaml
-services:
-  backend:
-    ports:
-      - "8000:8000"   # era: "127.0.0.1:8000:8000"
-  frontend:
-    ports:
-      - "5173:5173"   # era: "127.0.0.1:5173:5173"
-```
-
-Em seguida, reconstrua e suba os containers:
-
-```bash
-docker compose up --build
-```
-
-**Sem Docker**
-
-O backend ja escuta em `0.0.0.0` e o Vite ja esta configurado com `host: true`, portanto nenhuma alteracao adicional e necessaria. Basta iniciar os servicos normalmente conforme descrito na secao "Executando sem Docker".
-
-### 4. Acesse pelo celular
-
-Com os servicos rodando, abra o navegador do celular e acesse:
-
-```
-http://192.168.1.100:5173
-```
-
-> Se a pagina nao carregar, verifique se o firewall do sistema operacional permite conexoes nas portas 5173 e 8000. No Windows, isso pode ser ajustado em "Firewall do Windows Defender > Regras de Entrada".
-
-## Assistente de Análise
-
-A rota `/assistente` oferece um dashboard com agente Text-to-SQL (PydanticAI + Gemini 2.5 Flash). Usuários formulam perguntas em linguagem natural e recebem tabelas, gráficos e uma explicação analítica gerada a partir do banco de dados do e-commerce.
-
-### Configuração da chave Gemini
-
-1. Obtenha uma chave em [Google AI Studio](https://aistudio.google.com/app/apikey).
-2. Adicione a chave em `backend/.env` (execução manual) e na raiz `.env` (Docker):
-
-```dotenv
-GOOGLE_API_KEY=sua_chave_aqui
-```
-
-Sem a variável definida, `GET /api/assistente/saude` retorna `"gemini_configurado": false` e `POST /api/assistente/perguntar` retorna HTTP 503.
-
-### Perfis de acesso
-
-| Perfil | Pode enviar perguntas | Visualiza resultados |
-|---|---|---|
-| `admin` | Sim | Sim |
-| `viewer` | Não (input desabilitado + 403) | Sim (histórico, sugestões) |
-
-### Perguntas de exemplo
+| Framework de agentes à escolha | **PydanticAI** (`pydantic-ai`) |
+| Modelo | **Gemini 2.5 Flash** (via `google-genai`) |
+| Linguagem | **Python 3.11+** |
+| Entregável | **Módulo de backend FastAPI** + frontend React para interface visual |
+| Banco SQLite (`banco.db`) | Carregado a partir dos CSVs oficiais em `backend/data/` (`dim_*.csv`, `fat_*.csv`) para `backend/database.db` (ou volume Docker) via `seed.py` |
+
+### Perguntas Sugeridas
+
+A tela `/assistente` traz uma barra de perguntas sugeridas com acesso de um clique às consultas abaixo (definidas em `frontend/src/components/assistente/SampleQuestions.tsx`):
 
 1. Top 10 produtos mais vendidos
 2. Qual a distribuição de pedidos por status?
@@ -277,103 +31,289 @@ Sem a variável definida, `GET /api/assistente/saude` retorna `"gemini_configura
 9. Qual a receita total por mês?
 10. Qual a receita média por pedido agrupada por estado?
 
-### Guardrails e segurança
+### Extras implementados
 
-- **SELECT-only:** qualquer DDL/DML (`INSERT`, `UPDATE`, `DELETE`, `DROP`, etc.) é bloqueado antes da execução.
-- **Tabela `usuarios` bloqueada:** consultas que referenciam essa tabela são rejeitadas com HTTP 400.
-- **LIMIT 1000:** toda query recebe um limite máximo automático para evitar varreduras completas.
-- **Engine read-only:** o banco é aberto em modo somente-leitura no SQLite (`mode=ro`).
-
-### Anonimização
-
-O toggle 🔒 ("Modo anônimo") mascara PII nas respostas antes de enviá-las ao frontend:
-
-| Campo | Transformação |
-|---|---|
-| `nome_consumidor`, `nome_vendedor`, `autor_resposta` | SHA-1 truncado para 6 chars → `Consumidor_abc123` |
-| `prefixo_cep` | Mantém 5 primeiros dígitos, zera o restante |
-| `comentario`, `titulo_comentario` | Truncado em 40 chars e substituído por `[comentário ocultado]` |
+- **Guardrails de segurança**
+  - `sqlglot` valida que só `SELECT` é executado (bloqueia `INSERT`, `UPDATE`, `DELETE`, `DROP`, etc.)
+  - Tabela `usuarios` é **blacklisted**
+  - `LIMIT 1000` injetado automaticamente em toda query
+  - Engine SQLite aberto em modo read-only (`mode=ro`) — última camada de defesa
+- **Anonimização de PII (apenas para o LLM)** — toggle na interface que mascara dados sensíveis **exclusivamente no payload enviado ao agente de insight**. As tabelas e gráficos exibidos ao usuário sempre mostram os valores originais do banco; só o texto analítico gerado pelo Gemini é produzido em cima dos dados mascarados (`backend/app/services/assistente_service.py:222-226`). As transformações aplicadas por coluna são:
+  - `nome_consumidor` → `Consumidor_{hash6}` (hash SHA-1 truncado em 6 caracteres, determinístico)
+  - `nome_vendedor` → `Vendedor_{hash6}`
+  - `autor_resposta` → `Usuario_{hash6}`
+  - `prefixo_cep` → dois primeiros dígitos + `***` (ex.: `22***`)
+  - `comentario` e `titulo_comentario` → truncados em 40 caracteres e com qualquer sequência numérica de 3+ dígitos substituída por `***`
+  - Um mapeamento reverso dos hashes de nomes é devolvido junto à resposta (`traducao_anonimizacao`) como legenda para o usuário decodificar os tokens que aparecerem no insight
+- **Interface visual** — dashboard React com tabelas formatadas (monetário, float, inteiro) e gráficos (bar, line, pie, area, scatter) renderizados via `recharts`
+- **Agente de insight analítico** — segundo agente Gemini produz um comentário curto (2–4 frases) ancorado nos dados retornados, com regras anti-alucinação
+- **Retry com auto-correção** — falhas transitórias disparam até 3 tentativas, injetando o erro anterior no contexto
+- **Controle de acesso** — apenas usuários `admin` podem fazer perguntas; `viewer` visualiza histórico/sugestões
+- **Histórico local** — consultas ficam salvas no `localStorage` do navegador, com replay completo
 
 ---
 
-## Qualidade de código — frontend
+## 2. Stack adicionada nesta entrega
+
+Além da stack descrita em [`README-DEV.md`](./README-DEV.md), a feature do assistente adiciona:
+
+| Camada | Tecnologia |
+|---|---|
+| Framework de agentes | `pydantic-ai` |
+| SDK do modelo | `google-genai` |
+| Modelo | `gemini-2.5-flash` |
+| Validação/parsing de SQL | `sqlglot` |
+| Gráficos no frontend | `recharts` |
+
+Arquitetura resumida:
+
+```
+router/assistente.py
+    └── services/assistente_service.py   ← orquestrador
+          ├── agents/sql_agent.py        ← gera SQL (Gemini)
+          ├── services/sql_guardrail.py  ← valida e endurece
+          ├── services/readonly_db.py    ← engine mode=ro
+          ├── services/anonymizer.py     ← PII masking
+          └── agents/insight_agent.py    ← comentário analítico
+```
+
+---
+
+## 3. Clonando o repositório
+
+```bash
+git clone <url-do-repositorio>
+cd RocketLab-2026-GenAI
+```
+
+---
+
+## 4. Obtendo a chave do Gemini
+
+Uma **chave de API do Gemini é obrigatória** para usar o assistente. Sem ela, o endpoint `/api/assistente/perguntar` retorna HTTP 503.
+
+1. Acesse [Google AI Studio — API keys](https://aistudio.google.com/app/apikey).
+2. Clique em **"Create API key"** e copie o valor gerado.
+3. Guarde o valor — você vai colá-lo na variável `GOOGLE_API_KEY` na próxima seção.
+
+> A chave do plano gratuito já é suficiente para testar a atividade. O sistema trata automaticamente erros de rate limit (429) e quota (503).
+
+---
+
+## 5. Configurando a `GOOGLE_API_KEY`
+
+A aplicação lê a chave de dois locais, dependendo de como você roda:
+
+| Arquivo | Quando é lido | Para quê |
+|---|---|---|
+| `backend/.env` | Execução **sem Docker** (Uvicorn local) | Carregado pelo `BaseSettings` do backend |
+| `.env` (raiz do repo) | Execução **com Docker** (`docker compose`) | Passado ao container via `${GOOGLE_API_KEY}` no `docker-compose.yml` |
+
+### 5.1. Sem Docker — `backend/.env`
+
+Copie o template e edite:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Dentro de `backend/.env`, preencha **pelo menos** as duas variáveis abaixo:
+
+```dotenv
+GOOGLE_API_KEY=<API_KEY>
+
+JWT_SECRET=<64_Char_String>
+```
+
+As demais variáveis (`DATABASE_URL`) seguem o padrão documentado em [`README-DEV.md`](./README-DEV.md).
+
+### 5.2. Com Docker — `.env` na raiz do repo
+
+O `docker-compose.yml` referencia `${GOOGLE_API_KEY}` e `${JWT_SECRET:-}`, que o Docker Compose lê **automaticamente** de um `.env` na raiz do repositório. Crie esse arquivo com as duas variáveis:
+
+```bash
+# Gera o .env com a GOOGLE_API_KEY e um JWT_SECRET aleatório (64 chars hex)
+{
+  echo "GOOGLE_API_KEY=cole-sua-chave-aqui"
+  echo "JWT_SECRET=$(python -c 'import secrets; print(secrets.token_hex(32))')"
+} > .env
+```
+
+Se preferir editar à mão, o arquivo deve ficar assim:
+
+```dotenv
+GOOGLE_API_KEY=<API_KEY>
+JWT_SECRET=<64_Char_String>
+```
+
+> `JWT_SECRET` pode ficar vazio em dev (o backend gera uma chave efêmera a cada start), mas isso invalida os tokens existentes a cada reinício do container.
+
+---
+
+## 6. Primeira execução com Docker (recomendado)
+
+**Pré-requisito:** Docker Desktop (ou Docker Engine + Compose v2) instalado.
+
+```bash
+# 1. Criar .env na raiz com a GOOGLE_API_KEY (ver seção 5.2)
+echo "GOOGLE_API_KEY=cole-sua-chave-aqui" > .env
+
+# 2. Build + subir
+docker compose up --build
+```
+
+O container de backend executa automaticamente, nesta ordem:
+
+1. `alembic upgrade head` (cria as tabelas)
+2. `python seed.py` (carrega os CSVs em `backend/data/` — equivalente ao `banco.db` mencionado no enunciado)
+3. `uvicorn` na porta 8000
+
+Para parar:
+
+```bash
+docker compose down
+```
+
+Para limpar o volume com o banco (reset completo):
+
+```bash
+docker compose down -v
+```
+
+---
+
+## 7. Primeira execução sem Docker
+
+**Pré-requisitos:** Python **3.11+** e Node.js **20+**.
+
+### 7.1. Backend
+
+Em um terminal, a partir da raiz do repositório:
+
+```bash
+cd backend
+
+# 1. Ambiente virtual
+python -m venv .venv
+
+# Linux / macOS
+source .venv/bin/activate
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+# Windows (cmd / Git Bash)
+.venv\Scripts\activate
+
+# 2. Dependências
+pip install -r requirements.txt
+
+# 3. Variáveis de ambiente (ver seção 5.1)
+cp .env.example .env
+# edite backend/.env e preencha GOOGLE_API_KEY
+
+# 4. Criar e popular o banco (só na primeira execução)
+alembic upgrade head
+python seed.py
+
+# 5. Subir o servidor
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 7.2. Frontend
+
+Em **outro terminal**, a partir da raiz:
 
 ```bash
 cd frontend
-
-# Verificar linting (zero warnings esperado)
-npm run lint
-
-# Verificar tipos TypeScript (zero erros esperado)
-npm run type-check
-
-# Verificar formatação Prettier (zero diff esperado)
-npm run format:check
-
-# Aplicar formatação automaticamente
-npm run format
+npm install
+npm run dev
 ```
 
-Critérios de qualidade obrigatórios:
+---
 
-- `npm run lint` → 0 warnings
-- `npm run type-check` → 0 erros
-- `npm run format:check` → sem diff
+## 8. URLs da aplicação
 
-## Qualidade de código — backend
+| Serviço | URL |
+|---|---|
+| Interface do assistente | http://localhost:5173/assistente |
+| Login | http://localhost:5173 |
+| API (Swagger) | http://localhost:8000/docs |
+| Health-check do assistente | http://localhost:8000/api/assistente/saude |
+
+---
+
+## 9. Primeiro uso do assistente
+
+1. Crie uma conta com perfil **Administrador** (o perfil `viewer` não pode enviar perguntas, apenas ver histórico).
+2. Acesse a aba **Assistente** no menu (ou vá direto a http://localhost:5173/assistente).
+3. Use as **perguntas de exemplo** ou escreva uma pergunta livre em português.
+
+---
+
+## 10. Verificando que está tudo funcionando
 
 ```bash
-cd backend
-
-# Formatar código (aplica as correções)
-python -m ruff format .
-
-# Verificar estilo e linting (zero issues esperado)
-python -m ruff check .
-
-# Verificar tipos em modo estrito
-python -m mypy app/
-
-# Rodar suíte de testes
-python -m pytest tests/ -v
-
-# Rodar com relatório de cobertura
-python -m pytest --cov=app --cov-report=term-missing
+curl http://localhost:8000/api/assistente/saude
 ```
 
-Critérios de qualidade obrigatórios:
+Resposta esperada:
 
-- `ruff format --check .` → sem diff
-- `ruff check .` → 0 issues
-- `mypy app/` → 0 erros (modo strict)
-- `pytest tests/ -v` → 100% verde
-- Cobertura ≥ 80% nos módulos novos
-
-## Executando os testes
-
-```bash
-cd backend
-
-# Com o ambiente virtual ativado
-pytest tests/ -v
+```json
+{
+  "status": "ok",
+  "gemini_configurado": true,
+  "banco_acessivel": true
+}
 ```
 
-Os testes utilizam um banco SQLite em memoria isolado e cobrem autenticacao (login, registro, protecao de rotas), CRUD completo de produtos e operacoes de resposta a avaliacoes.
+Se `gemini_configurado` vier `false`, a `GOOGLE_API_KEY` não foi carregada — reveja a seção 5.
 
-## Endpoints principais
+---
 
-| Metodo | Rota | Descricao | Perfil |
-|---|---|---|---|
-| `POST` | `/api/auth/login` | Autenticar usuario | Publico |
-| `POST` | `/api/auth/register` | Criar nova conta | Publico |
-| `GET` | `/api/auth/me` | Dados do usuario autenticado | Autenticado |
-| `GET` | `/api/produtos/` | Listar produtos (paginado, filtravel) | Autenticado |
-| `GET` | `/api/produtos/categorias` | Listar categorias disponiveis | Autenticado |
-| `GET` | `/api/produtos/{id}` | Detalhe do produto | Autenticado |
-| `POST` | `/api/produtos/` | Criar produto | Admin |
-| `PUT` | `/api/produtos/{id}` | Atualizar produto | Admin |
-| `DELETE` | `/api/produtos/{id}` | Remover produto | Admin |
-| `GET` | `/api/produtos/{id}/vendas` | Estatisticas de vendas | Autenticado |
-| `GET` | `/api/produtos/{id}/avaliacoes` | Avaliacoes paginadas + media | Autenticado |
-| `POST` | `/api/produtos/avaliacoes/{id}/resposta` | Responder avaliacao | Admin |
-| `DELETE` | `/api/produtos/avaliacoes/{id}/resposta` | Remover resposta | Admin |
+## 11. Testes específicos desta entrega
+
+A suíte de testes é executada conforme `README-DEV.md`. Os testes novos desta entrega não chamam o Gemini real (o agente é mockado) e cobrem:
+
+- `test_sql_guardrail.py` — bloqueio de DML/DDL, blacklist `usuarios`, injeção de `LIMIT`
+- `test_anonymizer.py` — mascaramento determinístico e reversibilidade do mapping
+- `test_readonly_db.py` — tentativa de escrita contra engine read-only
+- `test_retry.py` — loop de retry com auto-correção
+- `test_agents.py` — contrato do agente (com mock)
+- `test_assistente_endpoint.py` — happy path do endpoint
+
+---
+
+## 12. Estrutura relevante para esta entrega
+
+```
+backend/
+├── app/
+│   ├── agents/
+│   │   ├── sql_agent.py         # Gera SQL a partir de linguagem natural
+│   │   ├── insight_agent.py     # Produz comentário analítico
+│   │   └── schema_context.py    # Schema do banco injetado no prompt
+│   ├── services/
+│   │   ├── assistente_service.py  # Orquestrador
+│   │   ├── sql_guardrail.py       # Valida SELECT-only + LIMIT
+│   │   ├── anonymizer.py          # Mascaramento de PII
+│   │   └── readonly_db.py         # Engine SQLite mode=ro
+│   ├── routers/assistente.py    # Endpoints /perguntar e /saude
+│   └── schemas/assistente.py    # Request/response Pydantic
+└── data/                        # CSVs originais da atividade (dim_*, fat_*)
+
+frontend/src/
+├── pages/AssistentePage.tsx              # Página principal do assistente
+└── components/assistente/                # Componentes (gráficos, tabela, toggle…)
+```
+
+---
+
+## 13. Solução de problemas específicos do assistente
+
+| Sintoma | Causa provável | Solução |
+|---|---|---|
+| `POST /api/assistente/perguntar` retorna 503 | `GOOGLE_API_KEY` ausente | Ver seção 5 |
+| `gemini_configurado: false` no `/saude` | `.env` não carregado | Reinicie o uvicorn; em Docker, `docker compose down && up` |
+| Erro 429 "Muitas requisições" | Rate limit do plano gratuito | Aguarde 1 minuto e tente de novo |
+| Banco vazio (nenhum dado) | `seed.py` não rodou | `python seed.py` (sem Docker) ou recriar volume (`docker compose down -v`) |
+
+---
