@@ -36,11 +36,19 @@ pip install -r requirements.txt
 
 **3. Configure as variáveis de ambiente**
 
-Copie o arquivo de exemplo e ajuste se necessário:
+Copie o arquivo de exemplo e preencha os valores obrigatórios:
 
 ```bash
 cp .env.example .env
 ```
+
+Edite o `.env` gerado e defina:
+
+- **`JWT_SECRET`** — chave aleatória de no mínimo 32 caracteres (recomendado: 64 hex). Gere com:
+  ```bash
+  python -c "import secrets; print(secrets.token_hex(32))"
+  ```
+- **`GOOGLE_API_KEY`** — chave da API do Google Gemini (obtenha em https://aistudio.google.com/app/apikey)
 
 ---
 
