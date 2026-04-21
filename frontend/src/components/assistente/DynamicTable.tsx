@@ -76,7 +76,7 @@ export function DynamicTable({ visualizacao, isAdmin }: DynamicTableProps): JSX.
                   scope="col"
                   className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300"
                 >
-                  {sanitizeLabel(col)}
+                  {sanitizeLabel(col, 80)}
                 </th>
               ))}
             </tr>
