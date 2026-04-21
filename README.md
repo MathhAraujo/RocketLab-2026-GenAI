@@ -130,11 +130,11 @@ A aplicação requer algumas variáveis de ambiente para funcionar confiavelment
 Para começar, crie uma cópia chamada `.env`. Dependendo da sua abordagem de execução (com Docker ou local), o local onde criar sua cópia muda:
 
 ```bash
-# Se for rodar COM Docker (crie na raiz do repositório):
-cp backend/.env.example .env
-
 # Se for rodar SEM Docker (crie dentro da pasta backend/):
 cp backend/.env.example backend/.env
+
+# Se for rodar COM Docker (crie na raiz do repositório):
+cp backend/.env.example .env
 ```
 
 Após criar o seu novo `.env`, abra-o no seu editor de preferência. As duas variáveis principais que exigem preenchimento manual são:
