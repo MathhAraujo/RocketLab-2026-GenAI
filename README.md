@@ -12,7 +12,7 @@ Agente inteligente integrado ao Sistema de Gerenciamento de E-Commerce. A funcio
 |---|---|
 | Framework de agentes à escolha | **PydanticAI** (`pydantic-ai`) |
 | Modelo | **Gemini 2.5 Flash** (via `google-genai`) |
-| Linguagem | **Python 3.11+** |
+| Linguagem | **Python 3.11 a 3.13** (ver aviso sobre 3.14 na seção 6.1) |
 | Entregável | **Módulo de backend FastAPI** + frontend React para interface visual |
 | Banco SQLite (`banco.db`) | Carregado a partir dos CSVs oficiais em `backend/data/` (`dim_*.csv`, `fat_*.csv`) para `backend/database.db` (ou volume Docker) via `seed.py` |
 
@@ -154,7 +154,10 @@ JWT_SECRET=<64_Char_String>
 
 ### 6.1. Sem Docker
 
-**Pré-requisitos:** Python **3.11+** e Node.js **20+**.
+**Pré-requisitos:** Python **3.11 a 3.13** e Node.js **20+**.
+
+> [!WARNING]
+> **Python 3.14 não é compatível com a execução local (sem Docker).** A dependência `pydantic-core` (exigida pelo `pydantic==2.10.3`) ainda não publica wheels pré-compiladas para o Python 3.14. O `pip install` tenta compilar o pacote do código-fonte via Rust/maturin, mas falha com o erro `linker 'link.exe' not found` (Windows) ou erros equivalentes de compilação em outros sistemas. Se você possui apenas o Python 3.14 instalado, utilize a **execução via Docker** (seção 6.2), que já embute uma versão compatível do Python.
 
 #### Backend
 
@@ -289,3 +292,4 @@ A suíte de testes é executada conforme o `README-DEV.md`. Os testes novos dest
 | `gemini_configurado: false` no `/saude` | `.env` não carregado | Reinicie o uvicorn; em Docker, `docker compose down && up` |
 | Erro 429 "Muitas requisições" | Rate limit do plano gratuito | Aguarde 1 minuto e tente de novo |
 | Banco vazio (nenhum dado) | `seed.py` não rodou | `python seed.py` (sem Docker) ou recriar volume (`docker compose down -v`) |
+| `pip install` falha com `Failed building wheel for pydantic-core` | Python 3.14 sem wheels pré-compiladas | Use Python 3.11 a 3.13 ou rode via Docker (seção 6.2) |
