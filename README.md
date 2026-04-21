@@ -1,4 +1,4 @@
-# Implementação de Funcionalidade Text-to-SQL
+# Implementação Text-to-SQL
 
 Agente inteligente integrado ao Sistema de Gerenciamento de E-Commerce. A funcionalidade permite que usuários realizem consultas de leitura no banco de dados através de perguntas em linguagem natural (Text-to-SQL), gerando como resultado tabelas estruturadas, gráficos visuais e comentários analíticos.
 
